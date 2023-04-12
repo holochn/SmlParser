@@ -15,6 +15,9 @@ enum sml_error_t {
     SML_ERROR_SIZE,
 };
 
+const uint16_t SML_MSG_TYPE_PUBOPEN_RES = 0x0101;
+const uint16_t SML_MSG_TYPE_GETLIST_RES = 0x0701;
+
 /* @brief Checks if a vector element is a SML Octet string
  * @param element The element to check as char
  * @return true if element is a SML octet string
@@ -46,8 +49,42 @@ bool isUnsigned8(const char element);
 /* @brief Gets a SML Unsigned8 from vector of chars
  * @param data Pointer to a vector of char
  * @param position Pointer to the position of the octet string
- * @return Unsigned8
+ * @return Unsigned8 
+ * @return 0xFF on error
  */
 uint8_t getUnsigned8(const std::vector<char> *data, const int position);
+
+/* @brief Gets a SML Unsigned16 from vector of chars
+ * @param data Pointer to a vector of char
+ * @param position Pointer to the position of the octet string
+ * @return Unsigned16 
+ * @return 0xFFFF on error
+ */
+uint16_t getUnsigned16(const std::vector<char> *data, const int position);
+
+/* @brief Gets a SML Unsigned32 from vector of chars
+ * @param data Pointer to a vector of char
+ * @param position Pointer to the position of the octet string
+ * @return Unsigned32 
+ * @return 0xFFFFFFFF on error
+ */
+uint32_t getUnsigned32(const std::vector<char> *data, const int position);
+
+
+
+/* @brief Get number of elements in a SML list
+ * @param data Pointer to a vector of char
+ * @param position Pointer to the position of the list
+ * @return number of list elements as uint8_t
+ * @return 0xFF in case of an error
+ */
+uint8_t getSmlListLength(const std::vector<char> *data, const int position);
+
+/* @brief Get SMl time stamp value
+ * @param data Pointer to a vector of char
+ * @param position Pointer to the position of the list
+ * @return SMl time stamp as uint32_t
+ */
+uint32_t getSmlTime(const std::vector<char> *data, const int position);
 
 #endif // _SML_PARSER_HPP_

@@ -1,9 +1,9 @@
 cmake_minimum_required(VERSION 3.14)
 
-set(This "SML_Parser")
+set(This "SmlParser")
 project(${This})
 
-set(CMAKE_CXX_STANDARD 14)
+set(CMAKE_CXX_STANDARD 17)
 
 
 

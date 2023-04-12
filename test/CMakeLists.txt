@@ -1,4 +1,4 @@
-set(ThisTest "testSML_Pareser")
+set(ThisTest "testSmlParser")
 
 include(FetchContent)
 FetchContent_Declare(
@@ -10,8 +10,8 @@ FetchContent_MakeAvailable(googletest)
 
 enable_testing()
 add_executable(${ThisTest}
-    testSML_Parser.cpp
-    ../src/SML_Parser.cpp
+    testSmlParser.cpp
+    ../src/SmlParser.cpp
 )
 target_include_directories(${ThisTest} PRIVATE
   ../src
