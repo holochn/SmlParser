@@ -1,6 +1,7 @@
 #ifndef _SML_PARSER_HPP_
 #define _SML_PARSER_HPP_
 
+#include "SmlListEntry.hpp"
 #include <fstream>
 #include <iterator>
 #include <stdlib.h> 
@@ -60,7 +61,7 @@ uint8_t getUnsigned8(const std::vector<unsigned char> *data, const int position)
  * @return Unsigned16 
  * @return 0xFFFF on error
  */
-uint16_t getUnsigned16(const std::vector<unsigned char> *data, const int position);
+uint16_t getUnsigned16(const std::vector<unsigned char> *data, int &position);
 
 /* @brief Gets a SML Unsigned32 from vector of chars
  * @param data Pointer to a vector of char
@@ -69,8 +70,6 @@ uint16_t getUnsigned16(const std::vector<unsigned char> *data, const int positio
  * @return 0xFFFFFFFF on error
  */
 uint32_t getUnsigned32(const std::vector<unsigned char> *data, const int position);
-
-
 
 /* @brief Get number of elements in a SML list
  * @param data Pointer to a vector of char
@@ -85,6 +84,6 @@ uint8_t getSmlListLength(const std::vector<unsigned char> *data, const int posit
  * @param position Pointer to the position of the list
  * @return SMl time stamp as uint32_t
  */
-uint32_t getSmlTime(const std::vector<unsigned char> *data, const int position);
+uint32_t getSmlTime(const std::vector<unsigned char> *data, int &position);
 
 #endif // _SML_PARSER_HPP_

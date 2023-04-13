@@ -62,10 +62,10 @@ uint8_t getUnsigned8(const std::vector<unsigned char> *data, const int position)
     return data->at(position + 1);
 }
 
-uint16_t getUnsigned16(const std::vector<unsigned char> *data, const int position) {
+uint16_t getUnsigned16(const std::vector<unsigned char> *data, int &position) {
     uint16_t retval = 0;
-    int pos = position;
     if( data->at(position) != 0x63 ) {
+        printf("Expected Unsigned16, but found %02x\n", data->at(position) );
         return 0xFFFF;
     }
 
@@ -73,10 +73,10 @@ uint16_t getUnsigned16(const std::vector<unsigned char> *data, const int positio
         return 0xFFFF;
     }
 
-    pos++;
-    retval = data->at(pos) << 8;
-    pos++;
-    retval = retval | data->at(pos);
+    ++position;
+    retval = data->at(position) << 8;
+    ++position;
+    retval = retval | data->at(position);
     return retval;
 }
 
@@ -110,25 +110,26 @@ uint8_t getSmlListLength(const std::vector<unsigned char> *data, const int posit
     return data->at(position) & 0x0F;
 }
 
-uint32_t getSmlTime(const std::vector<unsigned char> *data, const int position) {
+uint32_t getSmlTime(const std::vector<unsigned char> *data, int &position) {
     [[maybe_unused]]
     uint32_t retval=0;
-    int pos = position;
 
-    if(data->at(pos) != 0x72) {
+    if(data->at(position) != 0x72) {
         return 0;
     }
-    ++pos;
+    ++position;
 
-    int time_type = getUnsigned8(data, pos);
-    pos += 2;
+    int time_type = getUnsigned8(data, position);
+    position += 2;
 
     switch(time_type) {
         case 1: // secIndex
-            retval = getUnsigned32(data, pos);
+            retval = getUnsigned32(data, position);
+            position += 4;
             break;
         case 2: // timestamp
-            retval = getUnsigned32(data, pos);
+            retval = getUnsigned32(data, position);
+            position += 4;
             break;
         case 3: // timestamp local
             break;

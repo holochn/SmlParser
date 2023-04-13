@@ -18,6 +18,13 @@ sml_error_t parseSmlPublicOpenRes(const std::vector<unsigned char> *buffer, int 
  */
 sml_error_t parseSmlGetListRes(const std::vector<unsigned char> *buffer, int &position);
 
+/* @brief Parses a SML input stream as std::vector<unsigned char> for SMLListEntries
+ * @param buffer The input stream as std::vector<unsigned char>
+ * @param position the position pointer wehere to start parsing
+ * @return SmlListEntry
+ */
+SmlListEntry parseSmlListEntry(const std::vector<unsigned char> *buffer, int &position);
+
 void printCharVector(std::vector<unsigned char> v);
 
 int main() {
@@ -100,7 +107,8 @@ int main() {
 
         // message body type
         uint16_t messageType = getUnsigned16(&buffer, position_pointer);
-        position_pointer += 3;
+        printf("Type of SML message is %04x\n", messageType);
+        ++position_pointer;
 
         switch(messageType) {
             case SML_MSG_TYPE_PUBOPEN_RES: parseSmlPublicOpenRes(&buffer, position_pointer);
@@ -114,7 +122,7 @@ int main() {
         
         [[maybe_unused]] 
         uint16_t crc16 = getUnsigned16(&buffer, position_pointer);
-        position_pointer += 3;
+        ++position_pointer;
         
         if(buffer.at(position_pointer) != 0x00 ) {
             printf("Expected EndOfMessage, but found %02x\n", buffer.at(position_pointer));
@@ -178,6 +186,7 @@ sml_error_t parseSmlPublicOpenRes(const std::vector<unsigned char> *buffer, int 
     printf("serverId: ");
     printCharVector(serverId);
     printf("\n");
+    ++position;
     position += serverIdLength;
 
     // refTime
@@ -185,6 +194,8 @@ sml_error_t parseSmlPublicOpenRes(const std::vector<unsigned char> *buffer, int 
     if(isOctetString(buffer->at(position)) == false) {
         [[maybe_unused]]
         uint32_t smlTime = getSmlTime(buffer, position);   
+    } else {
+        printf("No refTime\n");
     }
 
     // smlVersion
@@ -212,6 +223,8 @@ sml_error_t parseSmlGetListRes(const std::vector<unsigned char> *buffer, int &po
         std::vector<unsigned char> clientId;
         clientId.resize(clientIdLength);
         getOctetStringAsVector(buffer, position, &clientId, clientIdLength);
+    } else {
+        printf("No clientId\n");
     }
     position += clientIdLength;
 
@@ -225,6 +238,7 @@ sml_error_t parseSmlGetListRes(const std::vector<unsigned char> *buffer, int &po
     std::vector<unsigned char> serverId;
     serverId.resize(serverIdLength);
     getOctetStringAsVector(buffer, position, &serverId, serverIdLength);
+    printf("serverID: ");
     printCharVector(serverId);
     printf("\n");
     position += serverIdLength;
@@ -236,18 +250,60 @@ sml_error_t parseSmlGetListRes(const std::vector<unsigned char> *buffer, int &po
         std::vector<unsigned char> listName;
         listName.resize(listNameLength);
         getOctetStringAsVector(buffer, position, &listName, listNameLength);
+        printf("listName: ");
+        printCharVector(listName);
+        printf("\n");
+    } else {
+        printf("No listName\n");
     }
     position += listNameLength;
 
     // actSensorTime
+    uint32_t actSensorTime = getSmlTime(buffer, position);
+    if(actSensorTime > 0) {
+        printf("actSensorTime: %05x\n", actSensorTime);
+    }
+    ++position;
+
+    printf("%02x\n", buffer->at(position));
 
     // valList
+    uint8_t valListLength = getSmlListLength(buffer, position);
+    ++position;
+    printf("Found %d valList entries\n", valListLength);
+
+    for (int i = 0; i < valListLength; i++)
+    {   
+        SmlListEntry entry = parseSmlListEntry(buffer, position);
+    }
+    
 
     // listSignature
 
     // actGatewaytime
 
     return SML_OK;
+}
+
+SmlListEntry parseSmlListEntry(const std::vector<unsigned char> *buffer, int &position) {
+    SmlListEntry ret;
+    if(buffer->at(position) != 0x77) {
+        printf("Error: Expected a list of 7 entries, but found %02x\n", buffer->at(position));
+        abort();
+    }
+    ++position;
+    int nameLength = getOctetStringLength(buffer->at(position));
+    ++position;
+    if(nameLength > 0) {
+        std::vector<unsigned char> name;
+        name.resize(nameLength);
+        getOctetStringAsVector(buffer, position, &name, nameLength);
+    } else {
+        printf("No name\n");
+    }
+    position += nameLength;
+
+    return ret;
 }
 
 void printCharVector(std::vector<unsigned char> v) {
