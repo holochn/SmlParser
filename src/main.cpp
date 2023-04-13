@@ -1,6 +1,6 @@
 #include "SmlParser.hpp"
 
-static const std::string INPUT_FILE = "/home/holo/workspace/esp32/SmlParser/assets/dump.hex";
+static const std::string INPUT_FILE = "../../assets/dump.hex";
 
 /* @brief Parses a SML PublicOpen.Res message
  * @param buffer A pointer to a std::vector<char> buffer
@@ -8,23 +8,23 @@ static const std::string INPUT_FILE = "/home/holo/workspace/esp32/SmlParser/asse
  * @return SML_OK on success
  * @return SML_ERR_SIZE on error
  */
-sml_error_t parseSmlPublicOpenRes(const std::vector<char> *buffer, int &position);
+sml_error_t parseSmlPublicOpenRes(const std::vector<unsigned char> *buffer, int &position);
 
 /* @brief Parses a SML GetList.Res message
- * @param buffer A pointer to a std::vector<char> buffer
+ * @param buffer A pointer to a std::vector<unsigned char> buffer
  * @param position the positon in the buffer where to start parsing
  * @return SML_OK on success
  * @return SML_ERR_SIZE on error
  */
-sml_error_t parseSmlGetListRes(const std::vector<char> *buffer, int &position);
+sml_error_t parseSmlGetListRes(const std::vector<unsigned char> *buffer, int &position);
 
-void printCharVector(std::vector<char> v);
+void printCharVector(std::vector<unsigned char> v);
 
 int main() {
     std::ifstream input(INPUT_FILE, std::ios::binary);
     std::istreambuf_iterator<char> it(input);
     std::istreambuf_iterator<char> end;
-    std::vector<char> buffer(it, end);
+    std::vector<unsigned char> buffer(it, end);
 
     printf("Buffer size: %d\n", static_cast<int>(buffer.size()));
     if(buffer.size() == 0) {
@@ -47,7 +47,7 @@ int main() {
         }
     }
 
-    std::vector<char> transactionId;
+    std::vector<unsigned char> transactionId;
     while(position_pointer < static_cast<int>(buffer.size()))
     {
         if( buffer[position_pointer] != 0x76) {
@@ -125,7 +125,7 @@ int main() {
     }
 }
 
-sml_error_t parseSmlPublicOpenRes(const std::vector<char> *buffer, int &position) {
+sml_error_t parseSmlPublicOpenRes(const std::vector<unsigned char> *buffer, int &position) {
     if(getSmlListLength(buffer, position) != 6) {
         return SML_ERROR_SIZE;
     }
@@ -135,7 +135,7 @@ sml_error_t parseSmlPublicOpenRes(const std::vector<char> *buffer, int &position
     int codePageLength = getOctetStringLength(buffer->at(position));
     ++position;
     if(codePageLength > 0) {
-        std::vector<char> codePage;
+        std::vector<unsigned char> codePage;
         codePage.resize(codePageLength);
         getOctetStringAsVector(buffer, position, &codePage, codePageLength);
     }
@@ -145,7 +145,7 @@ sml_error_t parseSmlPublicOpenRes(const std::vector<char> *buffer, int &position
     int clientIdLength = getOctetStringLength(buffer->at(position));
     ++position;
     if(clientIdLength > 0) {
-        std::vector<char> clientId;
+        std::vector<unsigned char> clientId;
         clientId.resize(clientIdLength);
         getOctetStringAsVector(buffer, position, &clientId, clientIdLength);
     }
@@ -158,7 +158,7 @@ sml_error_t parseSmlPublicOpenRes(const std::vector<char> *buffer, int &position
         printf("Required element reqField missing\n");
         return SML_ERROR_SYNTAX;
     }
-    std::vector<char> reqField;
+    std::vector<unsigned char> reqField;
     reqField.resize(reqFieldLength);
     getOctetStringAsVector(buffer, position, &reqField, reqFieldLength);
     printCharVector(reqField);
@@ -172,7 +172,7 @@ sml_error_t parseSmlPublicOpenRes(const std::vector<char> *buffer, int &position
         printf("Required element serverId missing\n");
         return SML_ERROR_SYNTAX;
     }
-    std::vector<char> serverId;
+    std::vector<unsigned char> serverId;
     serverId.resize(serverIdLength);
     getOctetStringAsVector(buffer, position, &serverId, serverIdLength);
     printCharVector(serverId);
@@ -182,6 +182,7 @@ sml_error_t parseSmlPublicOpenRes(const std::vector<char> *buffer, int &position
     // refTime
     // if the optional parameter is not available, it looks like a octet string
     if(isOctetString(buffer->at(position)) == false) {
+        [[maybe_unused]]
         uint32_t smlTime = getSmlTime(buffer, position);   
     }
 
@@ -196,7 +197,7 @@ sml_error_t parseSmlPublicOpenRes(const std::vector<char> *buffer, int &position
     return SML_OK;
 }
 
-sml_error_t parseSmlGetListRes(const std::vector<char> *buffer, int &position) {
+sml_error_t parseSmlGetListRes(const std::vector<unsigned char> *buffer, int &position) {
     if(getSmlListLength(buffer, position) != 7) {
         return SML_ERROR_SIZE;
     }
@@ -206,7 +207,7 @@ sml_error_t parseSmlGetListRes(const std::vector<char> *buffer, int &position) {
     int clientIdLength = getOctetStringLength(buffer->at(position));
     ++position;
     if(clientIdLength > 0) {
-        std::vector<char> clientId;
+        std::vector<unsigned char> clientId;
         clientId.resize(clientIdLength);
         getOctetStringAsVector(buffer, position, &clientId, clientIdLength);
     }
@@ -219,7 +220,7 @@ sml_error_t parseSmlGetListRes(const std::vector<char> *buffer, int &position) {
         printf("Required element serverId missing\n");
         return SML_ERROR_SYNTAX;
     }
-    std::vector<char> serverId;
+    std::vector<unsigned char> serverId;
     serverId.resize(serverIdLength);
     getOctetStringAsVector(buffer, position, &serverId, serverIdLength);
     printCharVector(serverId);
@@ -230,7 +231,7 @@ sml_error_t parseSmlGetListRes(const std::vector<char> *buffer, int &position) {
     int listNameLength = getOctetStringLength(buffer->at(position));
     ++position;
     if(listNameLength > 0) {
-        std::vector<char> listName;
+        std::vector<unsigned char> listName;
         listName.resize(listNameLength);
         getOctetStringAsVector(buffer, position, &listName, listNameLength);
     }
@@ -243,9 +244,11 @@ sml_error_t parseSmlGetListRes(const std::vector<char> *buffer, int &position) {
     // listSignature
 
     // actGatewaytime
+
+    return SML_OK;
 }
 
-void printCharVector(std::vector<char> v) {
+void printCharVector(std::vector<unsigned char> v) {
     for(unsigned int i=0; i < v.size(); i++) {
         printf("%02x ", static_cast<int>(v.at(i)));
     }

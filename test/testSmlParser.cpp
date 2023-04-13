@@ -25,44 +25,44 @@ TEST(getOctetStringLength, normalLength) {
 }
 
 TEST(getOctetStringAsVector, detectNullptr) {
-    std::vector<char> w;
-    std::vector<char> v;
+    std::vector<unsigned char> w;
+    std::vector<unsigned char> v;
     EXPECT_EQ(getOctetStringAsVector(NULL, 1, &w, 1), SML_ERROR_NULLPTR);
     EXPECT_EQ(getOctetStringAsVector(&v, 1, NULL, 1), SML_ERROR_NULLPTR);
 }
 
 TEST(getOctetStringAsVector, zeroLength) {
-    std::vector<char> w;
-    std::vector<char> v;
+    std::vector<unsigned char> w;
+    std::vector<unsigned char> v;
     EXPECT_EQ(getOctetStringAsVector(&v, 1, &w, 0), SML_ERROR_ZEROLENGTH);
 }
 
 TEST(getOctetStringAsVector, bufferOverflow) {
-    std::vector<char> w;
-    std::vector<char> v = {0x66};
+    std::vector<unsigned char> w;
+    std::vector<unsigned char> v = {0x66};
     EXPECT_EQ(getOctetStringAsVector(&v, 1, &w, 10), SML_ERROR_SIZE);
 }
 
 TEST(getOctetStringAsVector, getChar) {
-    std::vector<char> w;
+    std::vector<unsigned char> w;
     w.resize(5);
-    std::vector<char> v = {0x06, 0x68, 0x61, 0x6c, 0x6c, 0x6f};
-    std::vector<char> result = {0x68, 0x61, 0x6c, 0x6c, 0x6f};
+    std::vector<unsigned char> v = {0x06, 0x68, 0x61, 0x6c, 0x6c, 0x6f};
+    std::vector<unsigned char> result = {0x68, 0x61, 0x6c, 0x6c, 0x6f};
     EXPECT_EQ(getOctetStringAsVector(&v, 1, &w, getOctetStringLength(v.at(0))), SML_OK);
     EXPECT_EQ(result, w);
 }
 
 TEST(isUnsigned8, isUnsigned8) {
-    char testChar1 = 0x00;
-    char testChar2 = 0x62;
-    char testChar3 = 0xFF;
+    unsigned char testChar1 = 0x00;
+    unsigned char testChar2 = 0x62;
+    unsigned char testChar3 = 0xFF;
     EXPECT_EQ(isUnsigned8(testChar1), false);
     EXPECT_EQ(isUnsigned8(testChar2), true);
     EXPECT_EQ(isUnsigned8(testChar3), false);
 }
 
 TEST(getUnsigned8, getUnsigned8) {
-    std::vector<char> v = {0x62, 0};
+    std::vector<unsigned char> v = {0x62, 0};
     EXPECT_EQ(getUnsigned8(&v, 0), 0);
 
     v = {0x62};
@@ -76,7 +76,7 @@ TEST(getUnsigned8, getUnsigned8) {
 }
 
 TEST(getUnsigned16, getUnsigned16) {
-    std::vector<char> v = {0x62, 0};
+    std::vector<unsigned char> v = {0x62, 0};
     EXPECT_EQ(getUnsigned16(&v, 0), 0xFFFF);
 
     v = {0x63};
@@ -90,7 +90,7 @@ TEST(getUnsigned16, getUnsigned16) {
 }
 
 TEST(getUnsigned32, getUnsigned32) {
-    std::vector<char> v = {0x62, 0};
+    std::vector<unsigned char> v = {0x62, 0};
     EXPECT_EQ(getUnsigned32(&v, 0), 0xFFFFFFFF);
 
     v = {0x65};
@@ -110,7 +110,7 @@ TEST(getUnsigned32, getUnsigned32) {
 }
 
 TEST(list, getSmlListLength) {
-    std::vector<char> v = {0x86};
+    std::vector<unsigned char> v = {0x86};
     EXPECT_NE(getSmlListLength(&v, 0), 6);
     EXPECT_EQ(getSmlListLength(&v, 0), 0xFF);
 
@@ -119,15 +119,15 @@ TEST(list, getSmlListLength) {
 }
 
 TEST(smltime, getSmlTime) {
-    std::vector<char> v = {0x73, 0x62, 0x01, 0x01, 0x01, 0x01, 0x01};
+    std::vector<unsigned char> v = {0x73, 0x62, 0x01, 0x01, 0x01, 0x01, 0x01};
     EXPECT_EQ(getSmlTime(&v, 0), 0x00);
 
-    std::vector<char> w = {0x72, 0x62, 0x01, 0x01, 0x01, 0x01, 0x01};
+    std::vector<unsigned char> w = {0x72, 0x62, 0x01, 0x01, 0x01, 0x01, 0x01};
     EXPECT_EQ(getSmlTime(&w, 0), 0xFFFFFFFF);
 
-    std::vector<char> x = {0x72, 0x62, 0x01, 0x65, 0x01, 0x01, 0x01, 0x01};
+    std::vector<unsigned char> x = {0x72, 0x62, 0x01, 0x65, 0x01, 0x01, 0x01, 0x01};
     EXPECT_EQ(getSmlTime(&x, 0), 0x01010101);
 
-    std::vector<char> y = {0x72, 0x62, 0x02, 0x65, 0x01, 0x01, 0x01, 0x01};
+    std::vector<unsigned char> y = {0x72, 0x62, 0x02, 0x65, 0x01, 0x01, 0x01, 0x01};
     EXPECT_EQ(getSmlTime(&y, 0), 0x01010101);
 }

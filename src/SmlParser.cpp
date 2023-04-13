@@ -1,15 +1,15 @@
 #include "SmlParser.hpp"
 
-std::vector<char> OBIS_MANUFACTURER{0x81, 0x81, 0xc7, 0x82, 0x03, 0xff};
+std::vector<unsigned char> OBIS_MANUFACTURER{0x81, 0x81, 0xc7, 0x82, 0x03, 0xff};
 
-bool isOctetString(const char element) {
+bool isOctetString(const unsigned char element) {
     if( (element & 0xF0)  != 0x00) {
         return false;
     }
     return true;
 }
 
-int getOctetStringLength(const char element) {
+int getOctetStringLength(const unsigned char element) {
     if(static_cast<int>(element) & 0xF0) {
         return -1;
     }
@@ -19,7 +19,7 @@ int getOctetStringLength(const char element) {
     return static_cast<int> (element & 0x0F) - 1;
 }
 
-sml_error_t getOctetStringAsVector(const std::vector<char> *data, int position, std::vector<char> *octetstring, int length) {
+sml_error_t getOctetStringAsVector(const std::vector<unsigned char> *data, int position, std::vector<unsigned char> *octetstring, int length) {
     if(data == nullptr) {
         return SML_ERROR_NULLPTR;
     }
@@ -44,14 +44,14 @@ sml_error_t getOctetStringAsVector(const std::vector<char> *data, int position, 
     return SML_OK;
 }
 
-bool isUnsigned8(const char element) {
+bool isUnsigned8(const unsigned char element) {
     if( element != 0x62 ) {
         return false;
     }
     return true;
 }
 
-uint8_t getUnsigned8(const std::vector<char> *data, const int position) {
+uint8_t getUnsigned8(const std::vector<unsigned char> *data, const int position) {
     if( data->at(position) != 0x62 ) {
         return 0xFF;
     }
@@ -62,7 +62,7 @@ uint8_t getUnsigned8(const std::vector<char> *data, const int position) {
     return data->at(position + 1);
 }
 
-uint16_t getUnsigned16(const std::vector<char> *data, const int position) {
+uint16_t getUnsigned16(const std::vector<unsigned char> *data, const int position) {
     uint16_t retval = 0;
     int pos = position;
     if( data->at(position) != 0x63 ) {
@@ -80,7 +80,7 @@ uint16_t getUnsigned16(const std::vector<char> *data, const int position) {
     return retval;
 }
 
-uint32_t getUnsigned32(const std::vector<char> *data, const int position) {
+uint32_t getUnsigned32(const std::vector<unsigned char> *data, const int position) {
     uint32_t retval = 0;
     int pos = position;
     if( data->at(pos) != 0x65 ) {
@@ -102,7 +102,7 @@ uint32_t getUnsigned32(const std::vector<char> *data, const int position) {
     return retval;
 }
 
-uint8_t getSmlListLength(const std::vector<char> *data, const int position) {
+uint8_t getSmlListLength(const std::vector<unsigned char> *data, const int position) {
     if((data->at(position) & 0xF0) != 0x70) {
         return 0xFF;
     }
@@ -110,7 +110,7 @@ uint8_t getSmlListLength(const std::vector<char> *data, const int position) {
     return data->at(position) & 0x0F;
 }
 
-uint32_t getSmlTime(const std::vector<char> *data, const int position) {
+uint32_t getSmlTime(const std::vector<unsigned char> *data, const int position) {
     [[maybe_unused]]
     uint32_t retval=0;
     int pos = position;
