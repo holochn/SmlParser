@@ -114,11 +114,10 @@ int main() {
         
         [[maybe_unused]] 
         uint16_t crc16 = getUnsigned16(&buffer, position_pointer);
-        
         position_pointer += 3;
-
+        
         if(buffer.at(position_pointer) != 0x00 ) {
-            printf("Expected EndOfMessage.\n");
+            printf("Expected EndOfMessage, but found %02x\n", buffer.at(position_pointer));
             return SML_ERROR_SYNTAX;
         }
         ++position_pointer;
@@ -161,6 +160,7 @@ sml_error_t parseSmlPublicOpenRes(const std::vector<unsigned char> *buffer, int 
     std::vector<unsigned char> reqField;
     reqField.resize(reqFieldLength);
     getOctetStringAsVector(buffer, position, &reqField, reqFieldLength);
+    printf("reqField: ");
     printCharVector(reqField);
     printf("\n");
     position += reqFieldLength;
@@ -175,6 +175,7 @@ sml_error_t parseSmlPublicOpenRes(const std::vector<unsigned char> *buffer, int 
     std::vector<unsigned char> serverId;
     serverId.resize(serverIdLength);
     getOctetStringAsVector(buffer, position, &serverId, serverIdLength);
+    printf("serverId: ");
     printCharVector(serverId);
     printf("\n");
     position += serverIdLength;
@@ -192,6 +193,7 @@ sml_error_t parseSmlPublicOpenRes(const std::vector<unsigned char> *buffer, int 
         smlVersion = getUnsigned8(buffer, position);
         ++position;
     }
+    printf("SML Version: %d\n", smlVersion);
     ++position;
 
     return SML_OK;
