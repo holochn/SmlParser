@@ -12,6 +12,7 @@ enable_testing()
 add_executable(${ThisTest}
     testSmlParser.cpp
     ../src/SmlParser.cpp
+    ../src/SmlListEntry.cpp
 )
 target_include_directories(${ThisTest} PRIVATE
   ../src
