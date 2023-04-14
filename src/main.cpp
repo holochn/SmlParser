@@ -85,7 +85,6 @@ int main() {
         }
         uint8_t groupId = 0x00;
         groupId = getUnsigned8(&buffer, position_pointer);
-        position_pointer += 2;
         printf("group id: %d\n", groupId);
 
         // abortOnError
@@ -95,7 +94,6 @@ int main() {
         }
         uint8_t abortOnError = 0x00;
         groupId = getUnsigned8(&buffer, position_pointer);
-        position_pointer += 2;
         printf("abortOnError id: %d\n", abortOnError);
 
         // message body
@@ -127,7 +125,10 @@ int main() {
         if(buffer.at(position_pointer) != 0x00 ) {
             printf("Expected EndOfMessage, but found %02x\n", buffer.at(position_pointer));
             return SML_ERROR_SYNTAX;
+        } else {
+            printf("---------- EoM ----------\n");
         }
+
         ++position_pointer;
     }
 }
@@ -279,8 +280,27 @@ sml_error_t parseSmlGetListRes(const std::vector<unsigned char> *buffer, int &po
     
 
     // listSignature
+    int listSignatureLength = getOctetStringLength(buffer->at(position));
+    ++position;
+    if(listSignatureLength > 0) {
+        std::vector<unsigned char> listSignature;
+        listSignature.resize(listSignatureLength);
+        getOctetStringAsVector(buffer, position, &listSignature, listSignatureLength);
+        printCharVector(listSignature);
+        printf("\n");
+    } else {
+        printf("No listSignature\n");
+    }
+    position += listSignatureLength;
 
     // actGatewaytime
+    if(buffer->at(position) != 0x01) {
+        uint32_t actGatewaytime = getSmlTime(buffer, position);
+        printf("actGatewaytime: %05x\n", actGatewaytime);
+    } else {
+        printf("No actGatewaytime\n");
+    }
+    ++position;
 
     return SML_OK;
 }
@@ -292,16 +312,106 @@ SmlListEntry parseSmlListEntry(const std::vector<unsigned char> *buffer, int &po
         abort();
     }
     ++position;
+
+    // objName
     int nameLength = getOctetStringLength(buffer->at(position));
     ++position;
     if(nameLength > 0) {
         std::vector<unsigned char> name;
         name.resize(nameLength);
         getOctetStringAsVector(buffer, position, &name, nameLength);
+        if(name == OBIS_MANUFACTURER) {
+            printf("Manufacturer: ");
+            printCharVector(name);
+            printf("\n");
+        } else if(name == OBIS_DEVICE_ID) {
+            printf("Device ID: ");
+            printCharVector(name);
+            printf("\n");
+        } else if(name == OBIS_ACTIVE_ENERGY) {
+            printf("Aktive Wirkarbeit: ");
+            printCharVector(name);
+            printf("\n");
+        }
     } else {
         printf("No name\n");
     }
     position += nameLength;
+
+    // status
+    if(buffer->at(position) != 0x01) {
+        uint64_t status = getSmlStatus(buffer, position);
+        ret.setStatus(status);
+    } else {
+        printf("No status\n");
+    }
+    ++position;
+
+    // valTime
+    if(buffer->at(position) != 0x01) {
+        uint32_t valTime = getSmlTime(buffer, position);
+        ret.setTime(valTime);
+        printf("valTime: %05x\n", valTime);
+    } else {
+        printf("No valTime\n");
+    }
+    ++position;
+
+    // unit
+    if(buffer->at(position) != 0x01) {
+        uint8_t unit = getUnsigned8(buffer, position);
+        ret.setUnit(unit);
+        printf("unit: %02x\n", unit);
+    } else {
+        printf("No unit\n");
+    }
+    ++position;
+
+    // scaler
+    if(buffer->at(position) != 0x01) {
+        int8_t scaler = getSigned8(buffer, position);
+        ret.setScaler(scaler);
+        printf("scaler: %02x\n", scaler);
+    } else {
+        printf("No scaler\n");
+    }
+    ++position;
+
+    // value
+    if( (buffer->at(position) & 0xF0) == 0x00 ) {
+        int valueLength = getOctetStringLength(buffer->at(position));
+        ++position;
+        if(valueLength > 0) {
+            std::vector<unsigned char> value;
+            value.resize(valueLength);
+            getOctetStringAsVector(buffer, position, &value, valueLength);
+            printCharVector(value);
+            printf("\n");
+            ret.setStringValue(value);
+        } else {
+            printf("No value\n");
+        }
+        position += valueLength;
+    } else {
+        // todo: parse numeric value
+    }
+
+    // valueSignature
+    int valueSignatureLength = getOctetStringLength(buffer->at(position));
+    ++position;
+    if(valueSignatureLength > 0) {
+        std::vector<unsigned char> valueSignature;
+        valueSignature.resize(valueSignatureLength);
+        getOctetStringAsVector(buffer, position, &valueSignature, valueSignatureLength);
+        ret.setSignature(valueSignature);
+        printCharVector(valueSignature);
+        printf("\n");
+    } else {
+        printf("No valueSignature\n");
+    }
+    position += valueSignatureLength;
+
+    printf("_____ End of List Entry _____\n");
 
     return ret;
 }

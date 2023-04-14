@@ -63,50 +63,87 @@ TEST(isUnsigned8, isUnsigned8) {
 
 TEST(getUnsigned8, getUnsigned8) {
     std::vector<unsigned char> v = {0x62, 0};
-    EXPECT_EQ(getUnsigned8(&v, 0), 0);
+    int position = 0;
+    EXPECT_EQ(getUnsigned8(&v, position), 0);
 
-    v = {0x62};
-    EXPECT_EQ(getUnsigned8(&v, 0), 0xFF);
+    std::vector<unsigned char> ww = {0x62};
+    position = 1;
+    EXPECT_EQ(getUnsigned8(&ww, position), 0xFF);
 
-    v = {0x62, 0x99};
-    EXPECT_EQ(getUnsigned8(&v, 0), 0x99);
+    std::vector<unsigned char> vv = {0x62, 0x99};
+    EXPECT_EQ(getUnsigned8(&vv, position), 0x99);
 
-    v = {0x63, 10};
-    EXPECT_EQ(getUnsigned8(&v, 0), 0xFF);
+    std::vector<unsigned char> vvv = {0x63, 10};
+    EXPECT_EQ(getUnsigned8(&vvv, position), 0xFF);
 }
 
 TEST(getUnsigned16, getUnsigned16) {
     std::vector<unsigned char> v = {0x62, 0};
-    EXPECT_EQ(getUnsigned16(&v, 0), 0xFFFF);
+    int position = 0;
+    EXPECT_EQ(getUnsigned16(&v, position), 0xFFFF);
 
     v = {0x63};
-    EXPECT_EQ(getUnsigned16(&v, 0), 0xFFFF);
+    EXPECT_EQ(getUnsigned16(&v, position), 0xFFFF);
 
     v = {0x63, 0x10};
-    EXPECT_EQ(getUnsigned16(&v, 0), 0xFFFF);
+    EXPECT_EQ(getUnsigned16(&v, position), 0xFFFF);
 
     v = {0x63, 0x11, 0x11};
-    EXPECT_EQ(getUnsigned16(&v, 0), 0x1111);
+    EXPECT_EQ(getUnsigned16(&v, position), 0x1111);
 }
 
 TEST(getUnsigned32, getUnsigned32) {
     std::vector<unsigned char> v = {0x62, 0};
-    EXPECT_EQ(getUnsigned32(&v, 0), 0xFFFFFFFF);
+    int position = 0;
+    EXPECT_EQ(getUnsigned32(&v, position), 0xFFFFFFFF);
 
     v = {0x65};
-    EXPECT_EQ(getUnsigned32(&v, 0), 0xFFFFFFFF);
+    EXPECT_EQ(getUnsigned32(&v, position), 0xFFFFFFFF);
 
     v = {0x65, 0x10};
-    EXPECT_EQ(getUnsigned32(&v, 0), 0xFFFFFFFF);
+    EXPECT_EQ(getUnsigned32(&v, position), 0xFFFFFFFF);
 
     v = {0x65, 0x11, 0x11};
-    EXPECT_EQ(getUnsigned32(&v, 0), 0xFFFFFFFF);
+    EXPECT_EQ(getUnsigned32(&v, position), 0xFFFFFFFF);
 
     v = {0x65, 0x11, 0x11, 0x11};
-    EXPECT_EQ(getUnsigned32(&v, 0), 0xFFFFFFFF);
+    EXPECT_EQ(getUnsigned32(&v, position), 0xFFFFFFFF);
 
     v = {0x65, 0x11, 0x11, 0x11, 0x11};
-    EXPECT_EQ(getUnsigned32(&v, 0), 0x11111111);
+    EXPECT_EQ(getUnsigned32(&v, position), 0x11111111);
+}
+
+TEST(getUnsigned64, getUnsigned64) {
+    std::vector<unsigned char> v = {0x62, 0};
+    int position = 0;
+    EXPECT_EQ(getUnsigned64(&v, position), 0xFFFFFFFFFFFFFFFF);
+
+    v = {0x69};
+    EXPECT_EQ(getUnsigned64(&v, position), 0xFFFFFFFFFFFFFFFF);
+
+    v = {0x69, 0x10};
+    EXPECT_EQ(getUnsigned64(&v, position), 0xFFFFFFFFFFFFFFFF);
+
+    v = {0x69, 0x11, 0x11};
+    EXPECT_EQ(getUnsigned64(&v, position), 0xFFFFFFFFFFFFFFFF);
+
+    v = {0x69, 0x11, 0x11, 0x11};
+    EXPECT_EQ(getUnsigned64(&v, position), 0xFFFFFFFFFFFFFFFF);
+
+    v = {0x69, 0x11, 0x11, 0x11, 0x11};
+    EXPECT_EQ(getUnsigned64(&v, position), 0xFFFFFFFFFFFFFFFF);
+
+    v = {0x69, 0x11, 0x11, 0x11, 0x11, 0x11};
+    EXPECT_EQ(getUnsigned64(&v, position), 0xFFFFFFFFFFFFFFFF);
+
+    v = {0x69, 0x11, 0x11, 0x11, 0x11, 0x11, 0x11};
+    EXPECT_EQ(getUnsigned64(&v, position), 0xFFFFFFFFFFFFFFFF);
+
+    v = {0x69, 0x11, 0x11, 0x11, 0x11, 0x11, 0x11, 0x11};
+    EXPECT_EQ(getUnsigned64(&v, position), 0xFFFFFFFFFFFFFFFF);
+
+    v = {0x69, 0x11, 0x11, 0x11, 0x11, 0x11, 0x11, 0x11, 0x11};
+    EXPECT_EQ(getUnsigned64(&v, position), 0x1111111111111111);
 }
 
 TEST(list, getSmlListLength) {
@@ -120,14 +157,44 @@ TEST(list, getSmlListLength) {
 
 TEST(smltime, getSmlTime) {
     std::vector<unsigned char> v = {0x73, 0x62, 0x01, 0x01, 0x01, 0x01, 0x01};
-    EXPECT_EQ(getSmlTime(&v, 0), 0x00);
+    int position = 0;
+    EXPECT_EQ(getSmlTime(&v, position), 0x00);
+    EXPECT_EQ(position, 0x00);
 
+    position = 0;
     std::vector<unsigned char> w = {0x72, 0x62, 0x01, 0x01, 0x01, 0x01, 0x01};
-    EXPECT_EQ(getSmlTime(&w, 0), 0xFFFFFFFF);
+    EXPECT_EQ(getSmlTime(&w, position), 0xFFFFFFFF);
+    EXPECT_EQ(position, 0x03);
 
+    position = 0;
     std::vector<unsigned char> x = {0x72, 0x62, 0x01, 0x65, 0x01, 0x01, 0x01, 0x01};
-    EXPECT_EQ(getSmlTime(&x, 0), 0x01010101);
+    EXPECT_EQ(getSmlTime(&x, position), 0x01010101);
+    EXPECT_EQ(position, 0x07);
 
+    position = 0;
     std::vector<unsigned char> y = {0x72, 0x62, 0x02, 0x65, 0x01, 0x01, 0x01, 0x01};
-    EXPECT_EQ(getSmlTime(&y, 0), 0x01010101);
+    EXPECT_EQ(getSmlTime(&y, position), 0x01010101);
+    EXPECT_EQ(position, 0x07);
+}
+
+TEST(smlStatus, getSmlStatus) {
+    std::vector<unsigned char> v = {0x61, 0x12, 0x34};
+    int position = 0;
+    EXPECT_EQ(getSmlStatus(&v, position), 0xFFFFFFFFFFFFFFFF);
+
+    v = {0x62, 0x56};
+    position = 0;
+    EXPECT_EQ(getSmlStatus(&v, position), 0x56);
+
+    v = {0x63, 0x12, 0x34};
+    position = 0;
+    EXPECT_EQ(getSmlStatus(&v, position), 0x1234);
+
+    v = {0x65, 0x12, 0x34, 0x56, 0x78};
+    position = 0;
+    EXPECT_EQ(getSmlStatus(&v, position), 0x12345678);
+
+    v = {0x69, 0x12, 0x34, 0x56, 0x78, 0x12, 0x34, 0x56, 0x78};
+    position = 0;
+    EXPECT_EQ(getSmlStatus(&v, position), 0x1234567812345678);
 }
