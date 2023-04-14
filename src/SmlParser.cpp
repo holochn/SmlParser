@@ -1,7 +1,5 @@
 #include "SmlParser.hpp"
 
-std::vector<unsigned char> OBIS_MANUFACTURER{0x81, 0x81, 0xc7, 0x82, 0x03, 0xff};
-
 bool isOctetString(const unsigned char element) {
     if( (element & 0xF0)  != 0x00) {
         return false;
@@ -51,21 +49,44 @@ bool isUnsigned8(const unsigned char element) {
     return true;
 }
 
-uint8_t getUnsigned8(const std::vector<unsigned char> *data, const int position) {
+uint8_t getUnsigned8(const std::vector<unsigned char> *data, int &position) {
+    uint8_t retval = 0;
     if( data->at(position) != 0x62 ) {
+        printf("Expected Unsigned8 (0x62), but found %02x\n", data->at(position) );
         return 0xFF;
     }
-    
-    if(position >= static_cast<const int>(data->size()-1)) {
+    [[maybe_unused]]
+    size_t tmp = data->size();
+    printf("size: %d\n", int(tmp));
+    if(position >= static_cast<int>(data->size()-1)) {
         return 0xFF;
     }
-    return data->at(position + 1);
+    ++position;
+    retval = data->at(position);
+    ++position;
+    return retval;
+}
+
+int8_t getSigned8(const std::vector<unsigned char> *data, int &position) {
+    int8_t retval = 0;
+    if( data->at(position) != 0x52 ) {
+        printf("Expected Unsigned8 (0x52), but found %02x\n", data->at(position) );
+        return 0xFF;
+    }
+
+    if(position >= static_cast<int>(data->size()-1)) {
+        return 0xFF;
+    }
+    ++position;
+    retval = static_cast<int8_t>(data->at(position));
+    ++position;
+    return retval;
 }
 
 uint16_t getUnsigned16(const std::vector<unsigned char> *data, int &position) {
     uint16_t retval = 0;
     if( data->at(position) != 0x63 ) {
-        printf("Expected Unsigned16, but found %02x\n", data->at(position) );
+        printf("Expected Unsigned16 (0x63), but found %02x\n", data->at(position) );
         return 0xFFFF;
     }
 
@@ -80,25 +101,57 @@ uint16_t getUnsigned16(const std::vector<unsigned char> *data, int &position) {
     return retval;
 }
 
-uint32_t getUnsigned32(const std::vector<unsigned char> *data, const int position) {
+uint32_t getUnsigned32(const std::vector<unsigned char> *data, int &position) {
     uint32_t retval = 0;
-    int pos = position;
-    if( data->at(pos) != 0x65 ) {
+    if( data->at(position) != 0x65 ) {
+        printf("Expected Unsigned32 (0x65), but found %02x\n", data->at(position) );
         return 0xFFFFFFFF;
     }
 
-    if(pos >= static_cast<const int>(data->size()-4)) {
+    if(position >= static_cast<const int>(data->size()-4)) {
         return 0xFFFFFFFF;
     }
 
-    pos++;
-    retval = data->at(pos) << 24;
-    pos++;
-    retval = retval | data->at(pos) << 16;
-    pos++;
-    retval = retval | data->at(pos) << 8;
-    pos++;
-    retval = retval | data->at(pos);
+    ++position;
+    retval = data->at(position) << 24;
+    ++position;
+    retval = retval | data->at(position) << 16;
+    ++position;
+    retval = retval | data->at(position) << 8;
+    ++position;
+    retval = retval | data->at(position);
+    return retval;
+}
+
+uint64_t getUnsigned64(const std::vector<unsigned char> *data, int &position) {
+    uint64_t retval = 0;
+    if( data->at(position) != 0x69 ) {
+        printf("Expected Unsigned64 (0x69), but found %02x\n", data->at(position) );
+        return 0xFFFFFFFFFFFFFFFF;
+    }
+
+    if(position >= static_cast<const int>(data->size()-8)) {
+        return 0xFFFFFFFFFFFFFFFF;
+    }
+
+    ++position;
+    retval = static_cast<uint64_t>(data->at(position)) << 56;
+    ++position;
+    retval = retval | static_cast<uint64_t>(data->at(position)) << 48;
+    ++position;
+    retval = retval | static_cast<uint64_t>(data->at(position)) << 40;
+    ++position;
+    retval = retval | static_cast<uint64_t>(data->at(position)) << 32;
+    ++position;
+    retval = retval | static_cast<uint64_t>(data->at(position)) << 24;
+    ++position;
+    retval = retval | static_cast<uint64_t>(data->at(position)) << 16;
+    ++position;
+    retval = retval | static_cast<uint64_t>(data->at(position)) << 8;
+    ++position;
+    retval = retval | static_cast<uint64_t>(data->at(position));
+    return retval;
+
     return retval;
 }
 
@@ -111,7 +164,6 @@ uint8_t getSmlListLength(const std::vector<unsigned char> *data, const int posit
 }
 
 uint32_t getSmlTime(const std::vector<unsigned char> *data, int &position) {
-    [[maybe_unused]]
     uint32_t retval=0;
 
     if(data->at(position) != 0x72) {
@@ -120,19 +172,40 @@ uint32_t getSmlTime(const std::vector<unsigned char> *data, int &position) {
     ++position;
 
     int time_type = getUnsigned8(data, position);
-    position += 2;
+    if(time_type == 0xFF) {
+        return 0;
+    }
 
     switch(time_type) {
         case 1: // secIndex
             retval = getUnsigned32(data, position);
-            position += 4;
             break;
         case 2: // timestamp
             retval = getUnsigned32(data, position);
-            position += 4;
             break;
         case 3: // timestamp local
             break;
+    }
+
+    return retval;
+}
+
+uint64_t getSmlStatus(const std::vector<unsigned char> *data, int &position) {
+    uint64_t retval = 0xFFFFFFFFFFFFFFFF;
+    if( data->at(position) == 0x62 ) { 
+        retval = static_cast<uint64_t>( getUnsigned8(data, position) );
+    }
+
+    if( data->at(position) == 0x63 ) { 
+        retval = static_cast<uint64_t>( getUnsigned16(data, position) );
+    }
+
+    if( data->at(position) == 0x65 ) { 
+        retval = static_cast<uint64_t>( getUnsigned32(data, position) );
+    }
+
+    if( data->at(position) == 0x69 ) { 
+        retval = getUnsigned64(data, position);
     }
 
     return retval;

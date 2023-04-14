@@ -19,6 +19,10 @@ enum sml_error_t {
 const uint16_t SML_MSG_TYPE_PUBOPEN_RES = 0x0101;
 const uint16_t SML_MSG_TYPE_GETLIST_RES = 0x0701;
 
+const std::vector<unsigned char> OBIS_MANUFACTURER{0x81, 0x81, 0xc7, 0x82, 0x03, 0xff};
+const std::vector<unsigned char> OBIS_DEVICE_ID{0x01, 0x00, 0x00, 0x00, 0x09, 0xff};
+const std::vector<unsigned char> OBIS_ACTIVE_ENERGY{0x01, 0x00, 0x01, 0x08, 0x00, 0xff};
+
 /* @brief Checks if a vector element is a SML Octet string
  * @param element The element to check as char
  * @return true if element is a SML octet string
@@ -53,7 +57,15 @@ bool isUnsigned8(const unsigned char element);
  * @return Unsigned8 
  * @return 0xFF on error
  */
-uint8_t getUnsigned8(const std::vector<unsigned char> *data, const int position);
+uint8_t getUnsigned8(const std::vector<unsigned char> *data, int &position);
+
+/* @brief Gets a SML Signed8 from vector of chars
+ * @param data Pointer to a vector of char
+ * @param position Pointer to the position of the octet string
+ * @return Signed8 
+ * @return 0xFF on error
+ */
+int8_t getSigned8(const std::vector<unsigned char> *data, int &position);
 
 /* @brief Gets a SML Unsigned16 from vector of chars
  * @param data Pointer to a vector of char
@@ -69,7 +81,16 @@ uint16_t getUnsigned16(const std::vector<unsigned char> *data, int &position);
  * @return Unsigned32 
  * @return 0xFFFFFFFF on error
  */
-uint32_t getUnsigned32(const std::vector<unsigned char> *data, const int position);
+uint32_t getUnsigned32(const std::vector<unsigned char> *data, int &position);
+
+/* @brief Gets a SML Unsigned64 from vector of chars
+ * @param data Pointer to a vector of char
+ * @param position Pointer to the position of the octet string
+ * @return Unsigned64 
+ * @return 0xFFFFFFFFFFFFFFFF on error
+ */
+uint64_t getUnsigned64(const std::vector<unsigned char> *data, int &position);
+
 
 /* @brief Get number of elements in a SML list
  * @param data Pointer to a vector of char
@@ -85,5 +106,14 @@ uint8_t getSmlListLength(const std::vector<unsigned char> *data, const int posit
  * @return SMl time stamp as uint32_t
  */
 uint32_t getSmlTime(const std::vector<unsigned char> *data, int &position);
+
+/* @brief Gets a SML status as uint64_t from vector of chars
+ * @param data Pointer to a vector of char
+ * @param position Pointer to the position of the octet string
+ * @return Unsigned64 
+ * @return 0xFFFFFFFFFFFFFFFF on error
+ */
+uint64_t getSmlStatus(const std::vector<unsigned char> *data, int &position);
+
 
 #endif // _SML_PARSER_HPP_
