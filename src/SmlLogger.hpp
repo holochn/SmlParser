@@ -1,10 +1,12 @@
 #pragma once
 
-// for c++ 20
-// #include <source_location>
 #include <stdio.h>
+#include <string>
 
 enum SmlLogLevel { Verbose, Debug, Info, Warning, Error };
+const std::string SmlLogColor_White = "\033[0;37m";
+const std::string SmlLogColor_Yellow = "\033[0;33m";
+const std::string SmlLogColor_Red = "\033[0;31m";
 
 class SmlLogger {
 private:
@@ -12,14 +14,14 @@ private:
 
   template <typename... Args>
   static void printLogMessage(const char *logLevelText, const char *message,
-                              Args... args) {
-    printf("[%s]\t", logLevelText);
-    // for c++ 20:
-    // printf("file %s ", location.file_name());
-    // printf("function %s ", location.function_name());
-    // printf("in line %d ", location.line());
-    printf("%s", message, args...);
-    printf("\n");
+                              std::string logColor, Args... args) {
+
+    std::string strAsFormat = logColor;
+    strAsFormat += "[%s]\t";
+    strAsFormat += message;
+    strAsFormat += "\n";
+
+    printf(strAsFormat.c_str(), logLevelText, args...);
   }
 
 public:
@@ -30,35 +32,35 @@ public:
   template <typename... Args>
   static void Verbose(const char *message, Args... args) {
     if (logLevel <= SmlLogLevel::Verbose) {
-      printLogMessage("Verbose", message, args...);
+      printLogMessage("Verbose", message, SmlLogColor_White, args...);
     }
   }
 
   template <typename... Args>
   static void Debug(const char *message, Args... args) {
     if (logLevel <= SmlLogLevel::Debug) {
-      printLogMessage("Debug", message, args...);
+      printLogMessage("Debug", message, SmlLogColor_White, args...);
     }
   }
 
   template <typename... Args>
   static void Info(const char *message, Args... args) {
     if (logLevel <= SmlLogLevel::Info) {
-      printLogMessage("Info", message, args...);
+      printLogMessage("Info", message, SmlLogColor_White, args...);
     }
   }
 
   template <typename... Args>
   static void Warning(const char *message, Args... args) {
     if (logLevel <= SmlLogLevel::Warning) {
-      printLogMessage("Warning", message, args...);
+      printLogMessage("Warning", message, SmlLogColor_Yellow, args...);
     }
   }
 
   template <typename... Args>
   static void Error(const char *message, Args... args) {
     if (logLevel <= SmlLogLevel::Error) {
-      printLogMessage("Error", message, args...);
+      printLogMessage("Error", message, SmlLogColor_Red, args...);
     }
   }
 };
