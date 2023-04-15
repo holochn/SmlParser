@@ -22,6 +22,7 @@ private:
     strAsFormat += "\n";
 
     printf(strAsFormat.c_str(), logLevelText, args...);
+    printf("\033[0;37m");
   }
 
 public:
