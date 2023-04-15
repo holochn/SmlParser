@@ -6,6 +6,7 @@
 #include <iterator>
 #include <stdlib.h> 
 #include <vector>
+#include "SmlLogger.hpp"
 
 enum sml_error_t {
     SML_OK,
