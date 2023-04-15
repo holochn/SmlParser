@@ -35,6 +35,14 @@ SmlListEntry parseSmlListEntry(const std::vector<unsigned char> *buffer,
 
 void printCharVector(std::vector<unsigned char> v);
 
+/* @brief Merges the elements of an vectior<unsigned char> to a string
+ * @param the_vector The vector to be converted to a string 
+ * @return The elements of the inut vector as string
+ */
+std::string vectorToString(std::vector<unsigned char> *the_vector);
+
+void hexPrint(const std::vector<unsigned char> *buffer, int &position);
+
 int main() {
   std::ifstream input(INPUT_FILE, std::ios::binary);
   std::istreambuf_iterator<char> it(input);
@@ -115,7 +123,6 @@ int main() {
     // message body type
     uint16_t messageType = getUnsigned16(&buffer, position_pointer);
     SmlLogger::Debug("Type of SML message is %04x", messageType);
-    ++position_pointer;
 
     switch (messageType) {
     case SML_MSG_TYPE_PUBOPEN_RES:
@@ -131,7 +138,6 @@ int main() {
     }
 
     [[maybe_unused]] uint16_t crc16 = getUnsigned16(&buffer, position_pointer);
-    ++position_pointer;
 
     if (buffer.at(position_pointer) != 0x00) {
       SmlLogger::Error("Expected EndOfMessage, but found %02x",
@@ -160,6 +166,7 @@ sml_error_t parseSmlPublicOpenRes(const std::vector<unsigned char> *buffer,
     std::vector<unsigned char> codePage;
     codePage.resize(codePageLength);
     getOctetStringAsVector(buffer, position, &codePage, codePageLength);
+    SmlLogger::Info("cocePage: %s", vectorToString(&codePage).c_str());
   }
   position += codePageLength;
 
@@ -170,6 +177,7 @@ sml_error_t parseSmlPublicOpenRes(const std::vector<unsigned char> *buffer,
     std::vector<unsigned char> clientId;
     clientId.resize(clientIdLength);
     getOctetStringAsVector(buffer, position, &clientId, clientIdLength);
+    SmlLogger::Info("clientId: %s", vectorToString(&clientId).c_str());
   }
   position += clientIdLength;
 
@@ -177,39 +185,37 @@ sml_error_t parseSmlPublicOpenRes(const std::vector<unsigned char> *buffer,
   int reqFieldLength = getOctetStringLength(buffer->at(position));
   ++position;
   if (reqFieldLength == 0) {
-    SmlLogger::Error("Required element reqField missing");
+    SmlLogger::Error(
+        "Syntax error in line %d. Required element reqField missing", __LINE__);
     return SML_ERROR_SYNTAX;
   }
   std::vector<unsigned char> reqField;
   reqField.resize(reqFieldLength);
   getOctetStringAsVector(buffer, position, &reqField, reqFieldLength);
-  printf("reqField: ");
-  printCharVector(reqField);
-  printf("\n");
+  SmlLogger::Info("reqField: %s", vectorToString(&reqField).c_str());
   position += reqFieldLength;
 
   // serverId
   int serverIdLength = getOctetStringLength(buffer->at(position));
   ++position;
   if (serverIdLength == 0) {
-    printf("Required element serverId missing\n");
+    SmlLogger::Error("Sytax error in line %d. Required element serverId missing", __LINE__);
     return SML_ERROR_SYNTAX;
   }
   std::vector<unsigned char> serverId;
   serverId.resize(serverIdLength);
   getOctetStringAsVector(buffer, position, &serverId, serverIdLength);
-  printf("serverId: ");
-  printCharVector(serverId);
-  printf("\n");
+  SmlLogger::Info("serverID: %s", vectorToString(&serverId).c_str());
   ++position;
   position += serverIdLength;
 
   // refTime
   // if the optional parameter is not available, it looks like a octet string
   if (isOctetString(buffer->at(position)) == false) {
-    [[maybe_unused]] uint32_t smlTime = getSmlTime(buffer, position);
+    uint32_t smlTime = getSmlTime(buffer, position);
+    SmlLogger::Info("reftime: %d", smlTime);
   } else {
-    printf("No refTime\n");
+    SmlLogger::Info("No refTime");
   }
 
   // smlVersion
@@ -218,7 +224,7 @@ sml_error_t parseSmlPublicOpenRes(const std::vector<unsigned char> *buffer,
     smlVersion = getUnsigned8(buffer, position);
     ++position;
   }
-  printf("SML Version: %d\n", smlVersion);
+  SmlLogger::Info("SML Version: %d", smlVersion);
   ++position;
 
   return SML_OK;
@@ -238,8 +244,9 @@ sml_error_t parseSmlGetListRes(const std::vector<unsigned char> *buffer,
     std::vector<unsigned char> clientId;
     clientId.resize(clientIdLength);
     getOctetStringAsVector(buffer, position, &clientId, clientIdLength);
+    SmlLogger::Info("clientId: %s", vectorToString(&clientId).c_str());
   } else {
-    printf("No clientId\n");
+    SmlLogger::Info("No clientId");
   }
   position += clientIdLength;
 
@@ -247,15 +254,13 @@ sml_error_t parseSmlGetListRes(const std::vector<unsigned char> *buffer,
   int serverIdLength = getOctetStringLength(buffer->at(position));
   ++position;
   if (serverIdLength == 0) {
-    printf("Required element serverId missing\n");
+    SmlLogger::Error("Syntax error in line %d. Required element serverId missing", __LINE__);
     return SML_ERROR_SYNTAX;
   }
   std::vector<unsigned char> serverId;
   serverId.resize(serverIdLength);
   getOctetStringAsVector(buffer, position, &serverId, serverIdLength);
-  printf("serverID: ");
-  printCharVector(serverId);
-  printf("\n");
+  SmlLogger::Info("serverId:, %s", vectorToString(&serverId).c_str());
   position += serverIdLength;
 
   // listName
@@ -265,27 +270,22 @@ sml_error_t parseSmlGetListRes(const std::vector<unsigned char> *buffer,
     std::vector<unsigned char> listName;
     listName.resize(listNameLength);
     getOctetStringAsVector(buffer, position, &listName, listNameLength);
-    printf("listName: ");
-    printCharVector(listName);
-    printf("\n");
+    SmlLogger::Info("listName: %s", vectorToString(&listName).c_str());
   } else {
-    printf("No listName\n");
+    SmlLogger::Info("No listName");
   }
   position += listNameLength;
 
   // actSensorTime
   uint32_t actSensorTime = getSmlTime(buffer, position);
   if (actSensorTime > 0) {
-    printf("actSensorTime: %05x\n", actSensorTime);
+    SmlLogger::Info("actSensorTime: %05x", actSensorTime);
   }
-  ++position;
-
-  printf("%02x\n", buffer->at(position));
 
   // valList
   uint8_t valListLength = getSmlListLength(buffer, position);
   ++position;
-  printf("Found %d valList entries\n", valListLength);
+  SmlLogger::Info("Found %d valList entries", valListLength);
 
   for (int i = 0; i < valListLength; i++) {
     SmlListEntry entry = parseSmlListEntry(buffer, position);
@@ -299,19 +299,19 @@ sml_error_t parseSmlGetListRes(const std::vector<unsigned char> *buffer,
     listSignature.resize(listSignatureLength);
     getOctetStringAsVector(buffer, position, &listSignature,
                            listSignatureLength);
-    printCharVector(listSignature);
-    printf("\n");
+    SmlLogger::Info("listSignature: %s", vectorToString(&listSignature).c_str());
+    
   } else {
-    printf("No listSignature\n");
+    SmlLogger::Info("No listSignature");
   }
   position += listSignatureLength;
 
   // actGatewaytime
   if (buffer->at(position) != 0x01) {
     uint32_t actGatewaytime = getSmlTime(buffer, position);
-    printf("actGatewaytime: %05x\n", actGatewaytime);
+    SmlLogger::Info("actGatewaytime: %05x", actGatewaytime);
   } else {
-    printf("No actGatewaytime\n");
+    SmlLogger::Info("No actGatewaytime");
   }
   ++position;
 
@@ -322,8 +322,9 @@ SmlListEntry parseSmlListEntry(const std::vector<unsigned char> *buffer,
                                int &position) {
   SmlListEntry ret;
   if (buffer->at(position) != 0x77) {
-    printf("Error: Expected a list of 7 entries, but found %02x\n",
-           buffer->at(position));
+    SmlLogger::Error("Syntax error in line %d: Expected a list of 7 entries, but found %02x",
+           __LINE__, buffer->at(position));
+    hexPrint(buffer, position);
     abort();
   }
   ++position;
@@ -335,21 +336,24 @@ SmlListEntry parseSmlListEntry(const std::vector<unsigned char> *buffer,
     std::vector<unsigned char> name;
     name.resize(nameLength);
     getOctetStringAsVector(buffer, position, &name, nameLength);
+    hexPrint(buffer, position);
     if (name == OBIS_MANUFACTURER) {
-      printf("Manufacturer: ");
-      printCharVector(name);
-      printf("\n");
+      SmlLogger::Info("Manufacturer: %s", vectorToString(&name).c_str());
     } else if (name == OBIS_DEVICE_ID) {
-      printf("Device ID: ");
-      printCharVector(name);
-      printf("\n");
-    } else if (name == OBIS_ACTIVE_ENERGY) {
-      printf("Aktive Wirkarbeit: ");
-      printCharVector(name);
-      printf("\n");
+      SmlLogger::Info("Device ID: %s", vectorToString(&name).c_str());
+    } else if (name == OBIS_TOTAL_ENERGY) {
+      SmlLogger::Info("Zählerstand Total: %s", vectorToString(&name).c_str());
+    } else if (name == OBIS_ENERGY_T1) {
+      SmlLogger::Info("Zählerstand Tarif 1: %s", vectorToString(&name).c_str());
+    } else if (name == OBIS_ENERGY_T2) {
+      SmlLogger::Info("Zählerstand Tarif 2: %s", vectorToString(&name).c_str());
+    } else if (name == OBIS_PUB_KEY) {
+      SmlLogger::Info("Public Key: %s", vectorToString(&name).c_str());
+    } else if (name == OBIS_CURR_POWER) {
+      SmlLogger::Info("Current Power: %s", vectorToString(&name).c_str());
     }
   } else {
-    printf("No name\n");
+    SmlLogger::Info("No name");
   }
   position += nameLength;
 
@@ -357,58 +361,66 @@ SmlListEntry parseSmlListEntry(const std::vector<unsigned char> *buffer,
   if (buffer->at(position) != 0x01) {
     uint64_t status = getSmlStatus(buffer, position);
     ret.setStatus(status);
+    SmlLogger::Info("status: %ld", status);
   } else {
-    printf("No status\n");
+    SmlLogger::Info("No status");
+    ++position;
   }
-  ++position;
 
   // valTime
   if (buffer->at(position) != 0x01) {
     uint32_t valTime = getSmlTime(buffer, position);
     ret.setTime(valTime);
-    printf("valTime: %05x\n", valTime);
+    SmlLogger::Info("valTime: %05x", valTime);
   } else {
-    printf("No valTime\n");
+    SmlLogger::Info("No valTime");
+    ++position;
   }
-  ++position;
 
   // unit
   if (buffer->at(position) != 0x01) {
     uint8_t unit = getUnsigned8(buffer, position);
     ret.setUnit(unit);
-    printf("unit: %02x\n", unit);
+    SmlLogger::Info("unit: %02x", unit);
   } else {
-    printf("No unit\n");
+    SmlLogger::Info("No unit");
+    ++position;
   }
-  ++position;
 
   // scaler
   if (buffer->at(position) != 0x01) {
-    int8_t scaler = getSigned8(buffer, position);
+    int8_t scaler = getInteger8(buffer, position);
     ret.setScaler(scaler);
-    printf("scaler: %02x\n", scaler);
+    SmlLogger::Info("scaler: %02x", scaler);
   } else {
-    printf("No scaler\n");
+    SmlLogger::Info("No scaler");
+    ++position;
   }
-  ++position;
 
   // value
-  if ((buffer->at(position) & 0xF0) == 0x00) {
+  hexPrint(buffer, position);
+  if (((buffer->at(position) & 0xF0) == 0x00) || ((buffer->at(position) & 0xF0) == 0x80)) {
     int valueLength = getOctetStringLength(buffer->at(position));
     ++position;
     if (valueLength > 0) {
       std::vector<unsigned char> value;
       value.resize(valueLength);
       getOctetStringAsVector(buffer, position, &value, valueLength);
-      printCharVector(value);
-      printf("\n");
+      SmlLogger::Info("value: %s", vectorToString(&value).c_str());
       ret.setStringValue(value);
     } else {
-      printf("No value\n");
+      SmlLogger::Info("No value");
     }
     position += valueLength;
   } else {
-    // todo: parse numeric value
+    // currently only unsigned and signed values are supported
+    if ((buffer->at(position) & 0xF0) == 0x50) {
+      int64_t value = getInteger(buffer, position);
+      SmlLogger::Info("value: %ld", value);
+    } else if((buffer->at(position) & 0xF0) == 0x60) {
+      uint64_t value = getUnsigned(buffer, position);
+      SmlLogger::Info("value: %ld", value);
+    }
   }
 
   // valueSignature
@@ -420,14 +432,13 @@ SmlListEntry parseSmlListEntry(const std::vector<unsigned char> *buffer,
     getOctetStringAsVector(buffer, position, &valueSignature,
                            valueSignatureLength);
     ret.setSignature(valueSignature);
-    printCharVector(valueSignature);
-    printf("\n");
+    SmlLogger::Info("valueSignature", vectorToString(&valueSignature).c_str());
   } else {
-    printf("No valueSignature\n");
+    SmlLogger::Info("No valueSignature");
   }
   position += valueSignatureLength;
 
-  printf("_____ End of List Entry _____\n");
+  SmlLogger::Debug("_____ End of List Entry _____\n");
 
   return ret;
 }
@@ -446,4 +457,25 @@ std::string vectorToString(std::vector<unsigned char> *the_vector) {
   std::to_string(the_vector->at(0));
 
   return ret;
+}
+
+void hexPrint(const std::vector<unsigned char> *buffer, int &position) {
+  for(int i = position -10; i < position + 10; ++i) {
+      if(i==position) {
+        printf("\033[0;33m");
+      }
+      printf("%02x ", buffer->at(i));
+      if(i==position) {
+        printf("\033[0;37m");
+      }
+    }
+    printf("\n");
+    for(int i = position -10; i < position + 10; ++i) {
+      if(i==position) {
+        printf("%03d", position);
+      } else {
+        printf("   ");
+      }
+    }
+    printf("\n");
 }

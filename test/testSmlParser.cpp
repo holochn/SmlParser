@@ -19,6 +19,16 @@ TEST(getOctetStringLength, zeroLength) {
     EXPECT_EQ(getOctetStringLength(0x00), 0);
 }
 
+TEST(getOctetStringLength, extendedLength) {
+    std::vector<unsigned char> v = {0x83, 0x02};
+    int position = 0;
+    EXPECT_EQ(getExtendedOctetstringLength(&v, position), 0x32);
+
+    v = {0x83, 0x81, 0x02};
+    position = 0;
+    EXPECT_EQ(getExtendedOctetstringLength(&v, position), 0x312);
+}
+
 TEST(getOctetStringLength, normalLength) {
     EXPECT_EQ(getOctetStringLength(0x01), 0x00);
     EXPECT_EQ(getOctetStringLength(0x0F), 0x0E);
