@@ -80,6 +80,9 @@ TEST(getUnsigned8, getUnsigned8) {
     position = 1;
     EXPECT_EQ(getUnsigned8(&ww, position), 0xFF);
 
+    position = 0;
+    EXPECT_EQ(getUnsigned8(&ww, position), 0xFF);
+
     std::vector<unsigned char> vv = {0x62, 0x99};
     EXPECT_EQ(getUnsigned8(&vv, position), 0x99);
 
@@ -179,12 +182,12 @@ TEST(smltime, getSmlTime) {
     position = 0;
     std::vector<unsigned char> x = {0x72, 0x62, 0x01, 0x65, 0x01, 0x01, 0x01, 0x01};
     EXPECT_EQ(getSmlTime(&x, position), 0x01010101);
-    EXPECT_EQ(position, 0x07);
+    EXPECT_EQ(position, 0x08);
 
     position = 0;
     std::vector<unsigned char> y = {0x72, 0x62, 0x02, 0x65, 0x01, 0x01, 0x01, 0x01};
     EXPECT_EQ(getSmlTime(&y, position), 0x01010101);
-    EXPECT_EQ(position, 0x07);
+    EXPECT_EQ(position, 0x08);
 }
 
 TEST(smlStatus, getSmlStatus) {
