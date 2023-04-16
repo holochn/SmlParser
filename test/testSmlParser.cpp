@@ -19,14 +19,14 @@ TEST(getOctetStringLength, zeroLength) {
     EXPECT_EQ(getOctetStringLength(0x00), 0);
 }
 
-TEST(getOctetStringLength, extendedLength) {
+TEST(getExtendedOctetStringLength, extendedLength) {
     std::vector<unsigned char> v = {0x83, 0x02};
     int position = 0;
-    EXPECT_EQ(getExtendedOctetstringLength(&v, position), 0x32);
+    EXPECT_EQ(getExtendedOctetStringLength(&v, position), 0x32);
 
     v = {0x83, 0x81, 0x02};
     position = 0;
-    EXPECT_EQ(getExtendedOctetstringLength(&v, position), 0x312);
+    EXPECT_EQ(getExtendedOctetStringLength(&v, position), 0x312);
 }
 
 TEST(getOctetStringLength, normalLength) {
@@ -51,6 +51,22 @@ TEST(getOctetStringAsVector, bufferOverflow) {
     std::vector<unsigned char> w;
     std::vector<unsigned char> v = {0x66};
     EXPECT_EQ(getOctetStringAsVector(&v, 1, &w, 10), SML_ERROR_SIZE);
+}
+
+TEST(getExtendedOctetStringAsVector, getExtendedOctetStringAsVector) {
+  int position = 0;
+  std::vector<unsigned char> w;
+  std::vector<unsigned char> v = {0x81, 0x04, 0x74, 0x68, 0x69, 0x73, 0x20,
+                                  0x69, 0x73, 0x20, 0x61, 0x20, 0x73, 0x6d,
+                                  0x6c, 0x20, 0x70, 0x61, 0x72, 0x73, 0x65,
+                                  0x72, 0x74, 0x74, 0x74, 0x74};
+  std::vector<unsigned char> result = {0x74, 0x68, 0x69, 0x73, 0x20, 0x69, 0x73,
+                                       0x20, 0x61, 0x20, 0x73, 0x6d, 0x6c, 0x20,
+                                       0x70, 0x61, 0x72, 0x73, 0x65, 0x72};
+  int length = getExtendedOctetStringLength(&v, position);
+  w.resize(length);
+  EXPECT_EQ(getExtendedOctetStringAsVector(&v, position, &w, length), SML_OK);
+  EXPECT_EQ(w, result);
 }
 
 TEST(getOctetStringAsVector, getChar) {
