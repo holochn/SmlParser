@@ -1,34 +1,15 @@
-#ifndef _SML_PARSER_HPP_
-#define _SML_PARSER_HPP_
+#ifndef SML_PARSER_HPP_
+#define SML_PARSER_HPP_
 
-#include "SmlListEntry.hpp"
+#include "SmlFile.hpp"
+#include "SmlMessage.hpp"
+#include "SmlMessageBody.hpp"
+#include "SmlTypes.hpp"
 #include <fstream>
 #include <iterator>
 #include <stdlib.h> 
 #include <vector>
 #include "SmlLogger.hpp"
-
-enum sml_error_t {
-    SML_OK,
-    SML_NOK, 
-    SML_ERROR_HEADER,
-    SML_ERROR_SYNTAX,
-    SML_ERROR_NULLPTR,
-    SML_ERROR_ZEROLENGTH,
-    SML_ERROR_SIZE,
-};
-
-const uint16_t SML_MSG_TYPE_PUBOPEN_RES = 0x0101;
-const uint16_t SML_MSG_TYPE_GETLIST_RES = 0x0701;
-const uint16_t SML_MSG_TYPE_PUBCLOS_RES = 0x0201;
-
-const std::vector<unsigned char> OBIS_MANUFACTURER{0x81, 0x81, 0xc7, 0x82, 0x03, 0xff};
-const std::vector<unsigned char> OBIS_PUB_KEY{0x81, 0x81, 0xc7, 0x82, 0x05, 0xff};
-const std::vector<unsigned char> OBIS_DEVICE_ID{0x01, 0x00, 0x00, 0x00, 0x09, 0xff};
-const std::vector<unsigned char> OBIS_TOTAL_ENERGY{0x01, 0x00, 0x01, 0x08, 0x00, 0xff};
-const std::vector<unsigned char> OBIS_ENERGY_T1{0x01, 0x00, 0x01, 0x08, 0x01, 0xff};
-const std::vector<unsigned char> OBIS_ENERGY_T2{0x01, 0x00, 0x01, 0x08, 0x02, 0xff};
-const std::vector<unsigned char> OBIS_CURR_POWER{0x01, 0x00, 0x10, 0x07, 0x00, 0xff};
 
 /* @brief Main parsing function
  * @param data Pointer to a vector of char
@@ -36,7 +17,7 @@ const std::vector<unsigned char> OBIS_CURR_POWER{0x01, 0x00, 0x10, 0x07, 0x00, 0
  * @return SML_OK on success
  * @return SML_NOK on failure
  */
-sml_error_t parseSml(const std::vector<unsigned char> *buffer);
+SmlFile parseSml(const std::vector<unsigned char> *buffer);
 
 /* @brief Checks if a vector element is a SML Octet string
  * @param element The element to check as char
@@ -165,7 +146,7 @@ uint8_t getSmlListLength(const std::vector<unsigned char> *data, const int posit
  * @param position Pointer to the position of the list
  * @return SMl time stamp as uint32_t
  */
-uint32_t getSmlTime(const std::vector<unsigned char> *data, int &position);
+SmlTime getSmlTime(const std::vector<unsigned char> *data, int &position);
 
 /* @brief Gets a SML status as uint64_t from vector of chars
  * @param data Pointer to a vector of char
@@ -194,28 +175,25 @@ int64_t getInteger(const std::vector<unsigned char> *data, int &position);
 /* @brief Parses a SML PublicOpen.Res message
  * @param buffer A pointer to a std::vector<char> buffer
  * @param position the positon in the buffer where to start parsing
- * @return SML_OK on success
- * @return SML_ERR_SIZE on error
+ * @return SmlPublicOpenRes
  */
-sml_error_t parseSmlPublicOpenRes(const std::vector<unsigned char> *buffer,
+SmlPublicOpenRes parseSmlPublicOpenRes(const std::vector<unsigned char> *buffer,
                                   int &position);
 
 /* @brief Parses a SML PublicClose.Res message
  * @param buffer A pointer to a std::vector<char> buffer
  * @param position the positon in the buffer where to start parsing
- * @return SML_OK on success
- * @return SML_ERR_SIZE on error
+ * @return SmlPublicCloseRes message
  */
-sml_error_t parseSmlPublicCloseRes(const std::vector<unsigned char> *buffer,
+SmlPublicCloseRes parseSmlPublicCloseRes(const std::vector<unsigned char> *buffer,
                                   int &position);                            
 
 /* @brief Parses a SML GetList.Res message
  * @param buffer A pointer to a std::vector<unsigned char> buffer
  * @param position the positon in the buffer where to start parsing
- * @return SML_OK on success
- * @return SML_ERR_SIZE on error
+ * @return SmlGetListRes
  */
-sml_error_t parseSmlGetListRes(const std::vector<unsigned char> *buffer,
+SmlGetListRes parseSmlGetListRes(const std::vector<unsigned char> *buffer,
                                int &position);
 
 /* @brief Parses a SML input stream as std::vector<unsigned char> for
@@ -243,4 +221,4 @@ void hexPrint(const std::vector<unsigned char> *buffer, int &position);
 
 
 
-#endif // _SML_PARSER_HPP_
+#endif // SML_PARSER_HPP_

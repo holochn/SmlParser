@@ -1,5 +1,8 @@
 #include <gtest/gtest.h>
 #include "SmlParser.hpp"
+#include <stdint.h>
+
+SmlLogLevel SmlLogger::logLevel{SmlLogLevel::Debug};
 
 TEST(isOctetString, noString) {
     EXPECT_FALSE(isOctetString(0x10));
@@ -187,22 +190,22 @@ TEST(list, getSmlListLength) {
 TEST(smltime, getSmlTime) {
     std::vector<unsigned char> v = {0x73, 0x62, 0x01, 0x01, 0x01, 0x01, 0x01};
     int position = 0;
-    EXPECT_EQ(getSmlTime(&v, position), 0x00);
+    EXPECT_EQ(getSmlTime(&v, position).timeValue, 0xFFFFFFFF);
     EXPECT_EQ(position, 0x00);
 
     position = 0;
     std::vector<unsigned char> w = {0x72, 0x62, 0x01, 0x01, 0x01, 0x01, 0x01};
-    EXPECT_EQ(getSmlTime(&w, position), 0xFFFFFFFF);
+    EXPECT_EQ(getSmlTime(&w, position).timeValue, 0xFFFFFFFF);
     EXPECT_EQ(position, 0x03);
 
     position = 0;
     std::vector<unsigned char> x = {0x72, 0x62, 0x01, 0x65, 0x01, 0x01, 0x01, 0x01};
-    EXPECT_EQ(getSmlTime(&x, position), 0x01010101);
+    EXPECT_EQ(getSmlTime(&x, position).timeValue, 0x01010101);
     EXPECT_EQ(position, 0x08);
 
     position = 0;
     std::vector<unsigned char> y = {0x72, 0x62, 0x02, 0x65, 0x01, 0x01, 0x01, 0x01};
-    EXPECT_EQ(getSmlTime(&y, position), 0x01010101);
+    EXPECT_EQ(getSmlTime(&y, position).timeValue, 0x01010101);
     EXPECT_EQ(position, 0x08);
 }
 
