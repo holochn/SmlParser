@@ -52,6 +52,17 @@ public:
   }
 
   template <typename... Args>
+  static void Info(const char *message, std::string args) {
+    if (logLevel <= SmlLogLevel::Info) {
+      printLogMessage("Info", message, SmlLogColor_White);
+      for(int i = 0; i < (int) args.size(); ++i) {
+        printf("%02x ", reinterpret_cast<char>(args.at(i)));
+      }
+      printf("\n");
+    }
+  }
+
+  template <typename... Args>
   static void Warning(const char *message, Args... args) {
     if (logLevel <= SmlLogLevel::Warning) {
       printLogMessage("Warning", message, SmlLogColor_Yellow, args...);

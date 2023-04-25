@@ -1,5 +1,5 @@
-#ifndef _SML_LIST_ENTRY_HPP_
-#define _SML_LIST_ENTRY_HPP_
+#ifndef SML_LIST_ENTRY_HPP_
+#define SML_LIST_ENTRY_HPP_
 
 #include <stdint.h> 
 #include <vector>
@@ -31,4 +31,4 @@ public:
     void setSignature(const std::vector<unsigned char> t_value);
 };
 
-#endif // _SML_LIST_ENTRY_HPP_
+#endif // SML_LIST_ENTRY_HPP_

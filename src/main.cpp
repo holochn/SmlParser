@@ -1,6 +1,6 @@
 #include "SmlLogger.hpp"
 
-SmlLogLevel SmlLogger::logLevel{SmlLogLevel::Error};
+SmlLogLevel SmlLogger::logLevel{SmlLogLevel::Warning};
 
 #include "SmlParser.hpp"
 
@@ -12,7 +12,10 @@ int main() {
   std::istreambuf_iterator<char> end;
   std::vector<unsigned char> buffer(it, end);
 
-  parseSml(&buffer);
+  SmlFile smlFile = parseSml(&buffer);
+
+  printf("%s\n", (smlFile.getAsString_Manufacturer()).c_str());
+
 
   return 0;
 }
