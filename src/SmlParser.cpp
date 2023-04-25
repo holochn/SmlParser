@@ -1,4 +1,5 @@
 #include "SmlParser.hpp"
+#include <iostream>
 
 SmlParser::SmlParser(unsigned char *t_buffer, int t_buffer_size)
     : buffer{t_buffer}, buffer_size{t_buffer_size}, position{0} {
@@ -400,6 +401,8 @@ SmlListEntry SmlParser::parseSmlListEntry(const unsigned char *buffer,
     } else if (name == OBIS_CURR_POWER) {
       SmlLogger::Info("Current Power: %s", name.c_str());
     }
+
+    ret.objName = name;
   } else {
     SmlLogger::Info("No name");
   }
@@ -430,7 +433,7 @@ SmlListEntry SmlParser::parseSmlListEntry(const unsigned char *buffer,
     SmlLogger::Info("No unit");
     ++position;
   }
-hexPrint(buffer, position);
+
   // scaler
   if (buffer[position] != 0x01) {
     ret.scaler = lexer.getInteger8(buffer, buffer_size, position);
@@ -531,4 +534,14 @@ void SmlParser::hexPrint(const unsigned char *buffer, int &position) {
     }
   }
   printf("\n");
+}
+
+SmlListEntry SmlParser::getElementByObis(std::string obis) {
+  for(auto le : smlGetListRes.valList) {
+    if(le.objName == obis) {
+      return le;
+    }
+  }
+
+  return SmlListEntry();
 }

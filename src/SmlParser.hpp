@@ -78,6 +78,12 @@ public:
   SmlListEntry parseSmlListEntry(const unsigned char *buffer, const int buffer_size,
                                int &position);
 
+  /* @brief Searches a SmlListEntry and returns it
+   * @param obis The OBIS to search for
+   * @return SmlListEntry
+   */
+  SmlListEntry getElementByObis(std::string obis);
+
   void hexPrint(const unsigned char *buffer, int &position);
 };
 
