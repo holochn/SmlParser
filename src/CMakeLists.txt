@@ -1,6 +1,7 @@
 
 add_executable(${This}
     main.cpp
+    SmlLexer.cpp
     SmlParser.cpp
 )
 
