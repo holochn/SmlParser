@@ -406,7 +406,6 @@ SmlListEntry SmlParser::parseSmlListEntry(const unsigned char *buffer,
   position += nameLength;
 
   // status
-hexPrint(buffer, position);
   if (buffer[position] != 0x01) {
     ret.status = lexer.getSmlStatus(buffer, buffer_size, position);
     SmlLogger::Info("status: %ld", ret.status);
@@ -414,7 +413,7 @@ hexPrint(buffer, position);
     SmlLogger::Info("No status");
     ++position;
   }
-hexPrint(buffer, position);
+
   // valTime
   if (buffer[position] != 0x01) {
     SmlLogger::Info("valTime: %05x", ret.valTime.timeValue);
@@ -422,7 +421,7 @@ hexPrint(buffer, position);
     SmlLogger::Info("No valTime");
     ++position;
   }
-hexPrint(buffer, position);
+
   // unit
   if (buffer[position] != 0x01) {
     ret.unit = lexer.getUnsigned8(buffer, buffer_size, position);
@@ -440,11 +439,11 @@ hexPrint(buffer, position);
     SmlLogger::Info("No scaler");
     ++position;
   }
+
   // value
   if (lexer.isOctetString(buffer[position])) {
     int valueLength = lexer.getOctetStringLength(buffer[position]);
     ++position;
-hexPrint(buffer, position);
 
     if (valueLength > 0) {
       std::string value =

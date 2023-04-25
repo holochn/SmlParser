@@ -7,7 +7,7 @@
 SmlLogLevel SmlLogger::logLevel{SmlLogLevel::Verbose};
 
 static const std::string INPUT_FILE = "../../assets/dump.hex";
-static const uint16_t BUFFER_SIZE = 128;
+static const uint16_t BUFFER_SIZE = 1400;
 static uint8_t buffer[BUFFER_SIZE];
 
 

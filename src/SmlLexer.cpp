@@ -322,25 +322,42 @@ uint64_t SmlLexer::getSmlStatus(const unsigned char *buffer,
 
 uint64_t SmlLexer::getUnsigned(const unsigned char *buffer,
                                const int buffer_size, int &position) {
-  return static_cast<uint64_t>(getInteger(buffer, buffer_size, position));
+  uint64_t retval = 0xFFFFFFFFFFFFFFFF;
+  if (buffer[position] == 0x62) {
+    retval = static_cast<uint64_t>(getUnsigned8(buffer, buffer_size, position));
+  }
+
+  if (buffer[position] == 0x63) {
+    retval = static_cast<uint64_t>(getUnsigned16(buffer, buffer_size, position));
+  }
+
+  if (buffer[position] == 0x65) {
+    retval = static_cast<uint64_t>(getUnsigned32(buffer, buffer_size, position));
+  }
+
+  if (buffer[position] == 0x69) {
+    retval = getUnsigned64(buffer, buffer_size, position);
+  }
+
+  return retval;
 }
 
 int64_t SmlLexer::getInteger(const unsigned char *buffer, const int buffer_size,
                              int &position) {
   uint64_t retval = 0xFFFFFFFFFFFFFFFF;
-  if (buffer[position] == 0x62) {
+  if (buffer[position] == 0x52) {
     retval = static_cast<uint64_t>(getInteger8(buffer, buffer_size, position));
   }
 
-  if (buffer[position] == 0x63) {
+  if (buffer[position] == 0x53) {
     retval = static_cast<uint64_t>(getInteger16(buffer, buffer_size, position));
   }
 
-  if (buffer[position] == 0x65) {
+  if (buffer[position] == 0x55) {
     retval = static_cast<uint64_t>(getInteger32(buffer, buffer_size, position));
   }
 
-  if (buffer[position] == 0x69) {
+  if (buffer[position] == 0x59) {
     retval = getInteger64(buffer, buffer_size, position);
   }
 
