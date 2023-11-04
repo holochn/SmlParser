@@ -5,6 +5,7 @@
 #include "SmlLogger.hpp"
 #include "SmlMessageBody.hpp"
 #include "SmlTypes.hpp"
+#include <cstring>
 
 class SmlParser {
 private:
