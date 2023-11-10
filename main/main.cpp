@@ -185,8 +185,8 @@ void app_main()
 
 void tskReadFromUart(void *pvParameter)
 {
-	int pos = 0;
-	size_t buffered_size = 0;
+	// int pos = 0;
+	// size_t buffered_size = 0;
 	char uart_rx_buffer[UART_RX_BUF_SIZE];
 	for (;;)
 	{
