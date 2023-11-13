@@ -85,6 +85,12 @@ public:
    */
   SmlListEntry getElementByObis(std::string obis);
 
+  /** @brief Returns a string representation os a SMLUnit
+   *  @param SmlUnit hex-ID of the SmlUnit
+   * @return String that represents the SmlUnit 
+  */
+ std::string getUnitAsString(uint8_t unit);
+
   void hexPrint(const unsigned char *buffer, int &position);
 };
 

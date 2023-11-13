@@ -1,6 +1,12 @@
 #include "SmlParser.hpp"
 #include "SmlCrc.hpp"
 #include <iostream>
+#include <map>
+
+static const std::map<uint8_t, std::string> SmlUnit = {
+  {0x1b, "W"},
+  {0x1e, "Wh"}
+};
 
 SmlParser::SmlParser(unsigned char *t_buffer, int t_buffer_size)
     : buffer{t_buffer}, buffer_size{t_buffer_size}, position{0}
@@ -714,4 +720,12 @@ SmlListEntry SmlParser::getElementByObis(std::string obis)
   }
 
   return SmlListEntry();
+}
+
+std::string getUnitAsString(uint8_t unit) {
+  if(SmlUnit.find(unit) == SmlUnit.end()) {
+    return "";
+  } else {
+    return SmlUnit.at(unit);
+  }
 }

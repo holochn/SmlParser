@@ -100,60 +100,6 @@ void app_main()
 			}
 		}
 
-		if (false)
-		{
-			SmlListEntry device = smlParser.getElementByObis(OBIS_DEVICE_ID);
-			if (device.objName.empty())
-			{
-				ESP_LOGW(TAG1, "No device found");
-			}
-			else
-			{
-				if (device.isString)
-				{
-					std::cout << "device: " << std::hex << device.sValue << "\n";
-				}
-				else
-				{
-					ESP_LOGW(TAG1, "device value is not a string");
-				}
-			}
-
-			SmlListEntry currentPower = smlParser.getElementByObis(OBIS_CURR_POWER);
-			if (currentPower.objName.empty())
-			{
-				ESP_LOGW(TAG1, "No currentPower found");
-			}
-			else
-			{
-				if (currentPower.isString)
-				{
-					std::cout << "currentPower: " << std::hex << currentPower.sValue << "\n";
-				}
-				else
-				{
-					std::cout << "currentPower: " << std::hex << currentPower.iValue << "\n";
-				}
-			}
-
-			SmlListEntry energyT2 = smlParser.getElementByObis(OBIS_ENERGY_T2);
-			if (energyT2.objName.empty())
-			{
-				ESP_LOGW(TAG1, "No energyT2 found");
-			}
-			else
-			{
-				if (energyT2.isString)
-				{
-					std::cout << "energyT2: " << std::hex << energyT2.sValue << "\n";
-				}
-				else
-				{
-					std::cout << "energyT2: " << std::hex << energyT2.iValue << "\n";
-				}
-			}
-		}
-		
 		SmlListEntry totalEnergy = smlParser.getElementByObis(OBIS_TOTAL_ENERGY);
 		if (totalEnergy.objName.empty())
 		{
@@ -161,25 +107,19 @@ void app_main()
 		}
 		else
 		{
-			std::cout << "totalEnergy: \nvalue:\t" << totalEnergy.iValue << '\n';
-			std::cout << "scaler:\t" << totalEnergy.scaler << '\n';
-			std::cout << "uint:\t" << totalEnergy.unit << '\n';
+			std::cout << "totalEnergy: \nvalue:\t" << totalEnergy.value() << '\n';
 		}
 
-		SmlListEntry energyT1 = smlParser.getElementByObis(OBIS_ENERGY_T1);
-		if (energyT1.objName.empty())
+		SmlListEntry powerL1 = smlParser.getElementByObis(OBIS_SUM_ACT_INST_PWR_L1);
+		if (powerL1.objName.empty())
 		{
-			ESP_LOGW(TAG1, "No energyT1 found");
+			ESP_LOGW(TAG1, "No sum actual instantanious power found");
 		}
 		else
 		{
-			printf("energyT1: \nvalue:\t %lld\n", energyT1.iValue);
-			printf("scaler:\t %d\n", energyT1.scaler);
-			printf("uint:\t %d\n", energyT1.unit);
-
-			printf("--> %lld Wh\n", energyT1.iValue * 10 ^ energyT1.scaler);
+			std::cout << "Integer:: sum actual instantanious power: " << std::hex << powerL1.value() << "\n";
 		}
-		vTaskDelay(2000 / portTICK_PERIOD_MS);
+		vTaskDelay(1000 / portTICK_PERIOD_MS);
 	}
 }
 
@@ -250,8 +190,7 @@ void tskReadFromUart(void *pvParameter)
 			}
 		}
 	}
-
-	// sprintf(uart_rx_buffer, "ping %i\n", i);
+	
 	// xQueueGenericSend(ic_queue, uart_rx_buffer, 10, queueSEND_TO_BACK);
 	// ++i;
 	vTaskDelay(2500 / portTICK_PERIOD_MS);

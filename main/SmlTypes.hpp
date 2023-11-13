@@ -50,6 +50,16 @@ struct SmlListEntry {
     uint64_t iValue;
     std::string sValue;
     std::string signature;
+
+    float value() {
+        float val=0.0f;
+
+        if(!isString) {
+            val = iValue * 10^scaler;
+        }
+
+        return val;
+    }
 };
 
 #endif // SML_TYPES_HPP
