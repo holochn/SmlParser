@@ -2,6 +2,7 @@
 #define SML_TYPES_HPP
 
 #include <stdint.h>
+#include <string>
 
 const uint16_t SML_MSG_TYPE_PUBOPEN_RES = 0x0101;
 const uint16_t SML_MSG_TYPE_GETLIST_RES = 0x0701;
@@ -51,11 +52,12 @@ struct SmlListEntry {
     std::string sValue;
     std::string signature;
 
-    float value() {
-        float val=0.0f;
+    double value() {
+        double val=0.0f;
 
         if(!isString) {
-            val = iValue * 10^scaler;
+            val = static_cast<double>(iValue);
+            // val *= 10^scaler;
         }
 
         return val;
