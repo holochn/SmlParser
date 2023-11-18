@@ -2,6 +2,7 @@
 #define SML_TYPES_HPP
 
 #include <stdint.h>
+#include <string>
 
 const uint16_t SML_MSG_TYPE_PUBOPEN_RES = 0x0101;
 const uint16_t SML_MSG_TYPE_GETLIST_RES = 0x0701;
@@ -13,7 +14,10 @@ const std::string OBIS_DEVICE_ID{0x01, 0x00, 0x00, 0x00, 0x09, 0xff};
 const std::string OBIS_TOTAL_ENERGY{0x01, 0x00, 0x01, 0x08, 0x00, 0xff};
 const std::string OBIS_ENERGY_T1{0x01, 0x00, 0x01, 0x08, 0x01, 0xff};
 const std::string OBIS_ENERGY_T2{0x01, 0x00, 0x01, 0x08, 0x02, 0xff};
-const std::string OBIS_CURR_POWER{0x01, 0x00, 0x10, 0x07, 0x00, 0xff};
+const std::string OBIS_SUM_ACT_INST_PWR{0x01, 0x00, 0x10, 0x07, 0x00, 0xff};
+const std::string OBIS_SUM_ACT_INST_PWR_L1{0x01, 0x00, 0x24, 0x07, 0x00, 0xff};
+const std::string OBIS_SUM_ACT_INST_PWR_L2{0x01, 0x00, 0x38, 0x07, 0x00, 0xff};
+const std::string OBIS_SUM_ACT_INST_PWR_L3{0x01, 0x00, 0x4c, 0x07, 0x00, 0xff};
 
 enum sml_error_t {
     SML_OK,
@@ -47,6 +51,17 @@ struct SmlListEntry {
     uint64_t iValue;
     std::string sValue;
     std::string signature;
+
+    double value() {
+        double val=0.0f;
+
+        if(!isString) {
+            val = static_cast<double>(iValue);
+            // val *= 10^scaler;
+        }
+
+        return val;
+    }
 };
 
 #endif // SML_TYPES_HPP
