@@ -50,7 +50,6 @@ sml_error_t SmlParser::parseSml()
   auto stop = position + 4;
   for(int i = position; i < stop; ++i) 
   {
-    printf("%d %02x\n", position, buffer[position]);
     if (buffer[position] != 0x01)
     {
       SmlLogger::Error("Syntax error in %d. Expected start sequence 0x01.",
@@ -69,7 +68,6 @@ sml_error_t SmlParser::parseSml()
     }
 
     int start_crc = position;
-    hexPrint(buffer, position);
   
     SmlLogger::Info("<<<<< New SML Message >>>>>");
     // transactionId
@@ -483,7 +481,6 @@ SmlListEntry SmlParser::parseSmlListEntry(const unsigned char *buffer,
 {
   if (buffer[position] != 0x77)
   {
-    hexPrint(buffer, position);
     SmlLogger::Warning("Syntax error in line %d: Expected a list of 7 entries, "
                        "but found %02x",
                        __LINE__, buffer[position]);
