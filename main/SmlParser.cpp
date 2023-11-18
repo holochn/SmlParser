@@ -33,25 +33,31 @@ sml_error_t SmlParser::parseSml()
     position++;
     if (position >= buffer_size)
     {
+      SmlLogger::Error("Unable to find start sequence in %d.",__LINE__);
       return SML_ERROR_SIZE;
     }
   }
   SmlLogger::Verbose("Starting to parse on position %d", position);
 
-  if (parseEscapeSequence(buffer, buffer_size, position) != SML_OK)
+  auto retval = parseEscapeSequence(buffer, buffer_size, position);
+  if (retval != SML_OK)
   {
     SmlLogger::Error("Syntax error in %d. Expected start sequence 0x1b.",
                      __LINE__);
     return SML_ERROR_SYNTAX;
   }
-  for (position = 4; position < 8; position++)
+
+  auto stop = position + 4;
+  for(int i = position; i < stop; ++i) 
   {
+    printf("%d %02x\n", position, buffer[position]);
     if (buffer[position] != 0x01)
     {
       SmlLogger::Error("Syntax error in %d. Expected start sequence 0x01.",
                        __LINE__);
       return SML_ERROR_SYNTAX;
     }
+    ++position;
   }
 
   while (position < buffer_size)
@@ -63,6 +69,7 @@ sml_error_t SmlParser::parseSml()
     }
 
     int start_crc = position;
+  
     SmlLogger::Info("<<<<< New SML Message >>>>>");
     // transactionId
     position++;
@@ -133,6 +140,7 @@ sml_error_t SmlParser::parseSml()
       finished = true;
       break;
     default:
+    hexPrint(buffer, position);
       SmlLogger::Error("Unknown SML message type");
       return SML_UNKNOWN_TYPE;
       break;
@@ -201,8 +209,9 @@ sml_error_t SmlParser::parseEscapeSequence(const unsigned char *buffer,
   {
     return SML_ERROR_SIZE;
   }
-
-  for (int i = 0; i < 4; i++)
+  
+  int stop = position+4;
+  for (int i = position; i < stop; ++i)
   {
     if (buffer[i] != 0x1b)
     {
@@ -473,6 +482,7 @@ SmlListEntry SmlParser::parseSmlListEntry(const unsigned char *buffer,
 {
   if (buffer[position] != 0x77)
   {
+    hexPrint(buffer, position);
     SmlLogger::Warning("Syntax error in line %d: Expected a list of 7 entries, "
                        "but found %02x",
                        __LINE__, buffer[position]);
@@ -576,7 +586,7 @@ SmlListEntry SmlParser::parseSmlListEntry(const unsigned char *buffer,
   if (buffer[position] != 0x01)
   {
     ret.scaler = lexer.getInteger8(buffer, buffer_size, position);
-    SmlLogger::Info("scaler: %02x", ret.scaler);
+    SmlLogger::Info("scaler: %02d", ret.scaler);
   }
   else
   {
@@ -629,7 +639,7 @@ SmlListEntry SmlParser::parseSmlListEntry(const unsigned char *buffer,
   else if ((buffer[position] & 0xF0) == 0x50)
   {
     ret.isString = false;
-    ret.iValue = lexer.getInteger(buffer, buffer_size, position);
+    ret.iValue = uint64_t(lexer.getInteger(buffer, buffer_size, position));
     SmlLogger::Info("value: %ld", ret.iValue);
   }
   else if ((buffer[position] & 0xF0) == 0x60)
@@ -722,7 +732,7 @@ SmlListEntry SmlParser::getElementByObis(std::string obis)
   return SmlListEntry();
 }
 
-std::string getUnitAsString(uint8_t unit) {
+std::string SmlParser::getUnitAsString(uint8_t unit) {
   if(SmlUnit.find(unit) == SmlUnit.end()) {
     return "";
   } else {
