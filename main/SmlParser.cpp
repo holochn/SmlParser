@@ -69,6 +69,7 @@ sml_error_t SmlParser::parseSml()
     }
 
     int start_crc = position;
+    hexPrint(buffer, position);
   
     SmlLogger::Info("<<<<< New SML Message >>>>>");
     // transactionId
@@ -140,15 +141,15 @@ sml_error_t SmlParser::parseSml()
       finished = true;
       break;
     default:
-    hexPrint(buffer, position);
       SmlLogger::Error("Unknown SML message type");
       return SML_UNKNOWN_TYPE;
       break;
     }
     int end_crc = position;
+    
     uint16_t crc16 = lexer.getUnsigned16(buffer, buffer_size, position);
     if (crc16 !=
-        sml_crc16(const_cast<unsigned char *>(buffer), end_crc - start_crc))
+        sml_crc16(const_cast<unsigned char *>(&buffer[start_crc]), end_crc - start_crc))
     {
       SmlLogger::Error(
           "CRC error: Should be %04x, but is %04x", crc16,
