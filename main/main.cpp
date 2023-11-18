@@ -41,7 +41,7 @@ QueueHandle_t ic_queue = NULL;
 QueueHandle_t uart_queue = NULL;
 
 uart_event_t event;
-SmlLogLevel SmlLogger::logLevel{SmlLogLevel::Warning};
+SmlLogLevel SmlLogger::logLevel{SmlLogLevel::Verbose};
 
 void app_main()
 {
@@ -101,24 +101,14 @@ void app_main()
 		}
 
 		SmlListEntry totalEnergy = smlParser.getElementByObis(OBIS_TOTAL_ENERGY);
-		if (totalEnergy.objName.empty())
-		{
-			ESP_LOGW(TAG1, "No totalEnergy found");
-		}
-		else
-		{
-			std::cout << "totalEnergy: \nvalue:\t" << totalEnergy.value() << '\n';
-		}
+		std::cout << "totalEnergy: \nvalue:\t" << std::dec << totalEnergy.value() << '\n';
+		std::cout << "iValue: " << totalEnergy.iValue << '\n';
 
-		SmlListEntry powerL1 = smlParser.getElementByObis(OBIS_SUM_ACT_INST_PWR_L1);
-		if (powerL1.objName.empty())
-		{
-			ESP_LOGW(TAG1, "No sum actual instantanious power found");
-		}
-		else
-		{
-			std::cout << "Integer:: sum actual instantanious power: " << std::hex << powerL1.value() << "\n";
-		}
+		SmlListEntry powerL1 = smlParser.getElementByObis(OBIS_SUM_ACT_INST_PWR);
+		std::cout << "\nValue " << std::hex << powerL1.iValue << '\n';
+		std::cout << "scaler " << std::hex << powerL1.scaler << '\n';
+		std::cout << "Integer:: sum actual instantanious power: " << powerL1.value() << " " << smlParser.getUnitAsString(powerL1.unit) << "\n";
+
 		vTaskDelay(1000 / portTICK_PERIOD_MS);
 	}
 }
@@ -190,7 +180,7 @@ void tskReadFromUart(void *pvParameter)
 			}
 		}
 	}
-	
+
 	// xQueueGenericSend(ic_queue, uart_rx_buffer, 10, queueSEND_TO_BACK);
 	// ++i;
 	vTaskDelay(2500 / portTICK_PERIOD_MS);
