@@ -46,6 +46,7 @@ SmlLogLevel SmlLogger::logLevel{SmlLogLevel::Verbose};
 void app_main()
 {
 	char compute_buffer[UART_RX_BUF_SIZE];
+	char parse_buffer[UART_RX_BUF_SIZE];
 	ic_queue = xQueueCreate(10, sizeof(compute_buffer));
 	if (ic_queue == 0)
 	{
@@ -74,14 +75,23 @@ void app_main()
 		ESP_LOGE(TAG1, "ERROR creating task");
 	}
 
-	SmlParser smlParser(reinterpret_cast<unsigned char *>(&compute_buffer), int(UART_RX_BUF_SIZE));
+	SmlParser smlParser(reinterpret_cast<unsigned char *>(&parse_buffer), int(UART_RX_BUF_SIZE));
 
 	for (;;)
 	{
 		xQueueReceive(ic_queue, &compute_buffer, 1000 / portTICK_PERIOD_MS);
+		bzero(&parse_buffer, UART_RX_BUF_SIZE);
+		memcpy(&parse_buffer, &compute_buffer, UART_RX_BUF_SIZE);
+		printf("\n\n");
+		for(int i=0; i<UART_RX_BUF_SIZE; i++) {
+			printf("%02x", parse_buffer[i]);
+		}
+		printf("\n\n");
 
 		// parse the SMl message
-		smlParser.parseSml();
+		if(smlParser.parseSml() != SML_OK) {
+			continue;
+		}
 		SmlListEntry manufacturer = smlParser.getElementByObis(OBIS_MANUFACTURER);
 
 		if (manufacturer.objName.empty())
@@ -127,8 +137,11 @@ void tskReadFromUart(void *pvParameter)
 			switch (event.type)
 			{
 			case UART_DATA:
-				uart_read_bytes(UART_PORT, uart_rx_buffer, UART_RX_BUF_SIZE, UART_TIMEOUT_MS / portTICK_PERIOD_MS);
-				xQueueGenericSend(ic_queue, uart_rx_buffer, 10, queueSEND_TO_BACK);
+				uart_read_bytes(UART_PORT, &uart_rx_buffer, UART_RX_BUF_SIZE, UART_TIMEOUT_MS / portTICK_PERIOD_MS);
+				xQueueGenericSend(ic_queue, &uart_rx_buffer, 10 / portTICK_PERIOD_MS, queueSEND_TO_BACK);
+				for(int i=0; i < UART_RX_BUF_SIZE; i++) {
+					printf("%02x", uart_rx_buffer[i]);
+				}
 				uart_flush_input(UART_PORT);
 				break;
 			case UART_FIFO_OVF:

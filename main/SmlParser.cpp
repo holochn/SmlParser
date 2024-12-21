@@ -28,10 +28,13 @@ sml_error_t SmlParser::parseSml()
 
   char pattern[] = {0x1b, 0x1b, 0x1b, 0x1b, 0x01, 0x01, 0x01, 0x01};
   position = 0;
-  while (memcmp(&buffer[position], &pattern, 8) != 0)
+  for(int i=0; i<buffer_size; ++i) {
+    printf("%02x", buffer[i]);
+  }
+  while (memcmp(&buffer[position], &pattern, sizeof(pattern)) != 0)
   {
     position++;
-    if (position >= buffer_size)
+    if (position >= (buffer_size - sizeof(pattern)))
     {
       SmlLogger::Error("Unable to find start sequence in %d.",__LINE__);
       return SML_ERROR_SIZE;
