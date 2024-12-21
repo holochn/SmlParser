@@ -36,8 +36,6 @@ const uint32_t UART_RX_BUF_SIZE = 512;
 const uint8_t UART_PATTERN_CHR_NUM = 1;
 
 void tskReadFromUart(void *pvParameter);
-TaskHandle_t tskHndl = NULL;
-QueueHandle_t ic_queue = NULL;
 QueueHandle_t uart_queue = NULL;
 
 uart_event_t event;
@@ -46,12 +44,6 @@ SmlLogLevel SmlLogger::logLevel{SmlLogLevel::Verbose};
 void app_main()
 {
 	char compute_buffer[UART_RX_BUF_SIZE];
-	char parse_buffer[UART_RX_BUF_SIZE];
-	ic_queue = xQueueCreate(10, sizeof(compute_buffer));
-	if (ic_queue == 0)
-	{
-		ESP_LOGE(TAG1, "ERROR creating queue");
-	}
 
 	/* UART */
 	uart_config_t uart_config = {
@@ -64,85 +56,25 @@ void app_main()
 		.source_clk = UART_SRC_CLK,
 	};
 
-	ESP_ERROR_CHECK(uart_driver_install(UART_PORT, UART_RX_BUF_SIZE, UART_RX_BUF_SIZE, 10, &uart_queue, 0));
+	ESP_ERROR_CHECK(uart_driver_install(UART_PORT, UART_RX_BUF_SIZE, UART_RX_BUF_SIZE, 1, &uart_queue, 0));
 	ESP_ERROR_CHECK(uart_param_config(UART_PORT, &uart_config));
 	ESP_ERROR_CHECK(uart_set_pin(UART_PORT, PIN_UART_TX, PIN_UART_RX, PIN_UART_RTS, PIN_UART_CTS));
 	// uart_enable_pattern_det_baud_intr(UART_PORT, 0x1b1b1b1b01010101, UART_PATTERN_CHR_NUM, 9, 0, 0);
 
-	xTaskCreatePinnedToCore(tskReadFromUart, NULL, 2048, NULL, 10, &tskHndl, 1);
-	if ((tskHndl == NULL) || (tskHndl == 0))
-	{
-		ESP_LOGE(TAG1, "ERROR creating task");
-	}
-
-	SmlParser smlParser(reinterpret_cast<unsigned char *>(&parse_buffer), int(UART_RX_BUF_SIZE));
+	SmlParser smlParser(reinterpret_cast<unsigned char *>(&compute_buffer), int(UART_RX_BUF_SIZE));
 
 	for (;;)
 	{
-		xQueueReceive(ic_queue, &compute_buffer, 1000 / portTICK_PERIOD_MS);
-		bzero(&parse_buffer, UART_RX_BUF_SIZE);
-		memcpy(&parse_buffer, &compute_buffer, UART_RX_BUF_SIZE);
-		printf("\n\n");
-		for(int i=0; i<UART_RX_BUF_SIZE; i++) {
-			printf("%02x", parse_buffer[i]);
-		}
-		printf("\n\n");
-
-		// parse the SMl message
-		if(smlParser.parseSml() != SML_OK) {
-			continue;
-		}
-		SmlListEntry manufacturer = smlParser.getElementByObis(OBIS_MANUFACTURER);
-
-		if (manufacturer.objName.empty())
-		{
-			ESP_LOGW(TAG1, "No manufacturer found");
-		}
-		else
-		{
-			if (manufacturer.isString)
-			{
-				std::cout << "Manufacturer: " << std::hex << manufacturer.sValue << "\n";
-			}
-			else
-			{
-				ESP_LOGW(TAG1, "Manufacturer value is not a string");
-			}
-		}
-
-		SmlListEntry totalEnergy = smlParser.getElementByObis(OBIS_TOTAL_ENERGY);
-		std::cout << "totalEnergy: \nvalue:\t" << std::dec << totalEnergy.value() << '\n';
-		std::cout << "iValue: " << totalEnergy.iValue << '\n';
-
-		SmlListEntry powerL1 = smlParser.getElementByObis(OBIS_SUM_ACT_INST_PWR);
-		std::cout << "\nValue " << std::hex << powerL1.iValue << '\n';
-		std::cout << "scaler " << std::hex << powerL1.scaler << '\n';
-		std::cout << "Integer:: sum actual instantanious power: " << powerL1.value() << " " << smlParser.getUnitAsString(powerL1.unit) << "\n";
-
-		vTaskDelay(1000 / portTICK_PERIOD_MS);
-	}
-}
-
-void tskReadFromUart(void *pvParameter)
-{
-	// int pos = 0;
-	// size_t buffered_size = 0;
-	char uart_rx_buffer[UART_RX_BUF_SIZE];
-	for (;;)
-	{
-		bzero(&uart_rx_buffer, UART_RX_BUF_SIZE);
+		bzero(&compute_buffer, UART_RX_BUF_SIZE);
 		if (xQueueReceive(uart_queue, (void *)&event, (TickType_t)UART_TIMEOUT_MS / portTICK_PERIOD_MS))
 		{
 			ESP_LOGV(TAG2, "[Core1]\treceived an uart event\n");
 			switch (event.type)
 			{
 			case UART_DATA:
-				uart_read_bytes(UART_PORT, &uart_rx_buffer, UART_RX_BUF_SIZE, UART_TIMEOUT_MS / portTICK_PERIOD_MS);
-				xQueueGenericSend(ic_queue, &uart_rx_buffer, 10 / portTICK_PERIOD_MS, queueSEND_TO_BACK);
-				for(int i=0; i < UART_RX_BUF_SIZE; i++) {
-					printf("%02x", uart_rx_buffer[i]);
-				}
+				uart_read_bytes(UART_PORT, &compute_buffer, UART_RX_BUF_SIZE, UART_TIMEOUT_MS / portTICK_PERIOD_MS);
 				uart_flush_input(UART_PORT);
+				printf("%02x%02x receoived\n", compute_buffer[0], compute_buffer[1]);
 				break;
 			case UART_FIFO_OVF:
 				ESP_LOGI(TAG2, "hw fifo overflow");
@@ -192,9 +124,58 @@ void tskReadFromUart(void *pvParameter)
 				break;
 			}
 		}
+		
+		printf("\n\n");
+		for(int i=0; i<UART_RX_BUF_SIZE; i++) {
+			printf("%02x", compute_buffer[i]);
+		}
+		printf("\n\n");
+
+		// parse the SMl message
+		smlParser.parseSml();
+		SmlListEntry manufacturer = smlParser.getElementByObis(OBIS_MANUFACTURER);
+
+		if (manufacturer.objName.empty())
+		{
+			ESP_LOGW(TAG1, "No manufacturer found");
+		}
+		else
+		{
+			if (manufacturer.isString)
+			{
+				std::cout << "Manufacturer: " << std::hex << manufacturer.sValue << "\n";
+			}
+			else
+			{
+				ESP_LOGW(TAG1, "Manufacturer value is not a string");
+			}
+		}
+
+		SmlListEntry totalEnergy = smlParser.getElementByObis(OBIS_TOTAL_ENERGY);
+		std::cout << "totalEnergy: \nvalue:\t" << std::dec << totalEnergy.value() << '\n';
+		std::cout << "iValue: " << totalEnergy.iValue << '\n';
+
+		SmlListEntry powerL1 = smlParser.getElementByObis(OBIS_SUM_ACT_INST_PWR);
+		std::cout << "\nValue " << std::hex << powerL1.iValue << '\n';
+		std::cout << "scaler " << std::hex << powerL1.scaler << '\n';
+		std::cout << "Integer:: sum actual instantanious power: " << powerL1.value() << " " << smlParser.getUnitAsString(powerL1.unit) << "\n";
+
+		vTaskDelay(1000 / portTICK_PERIOD_MS);
+	}
+}
+
+void tskReadFromUart(void *pvParameter)
+{
+	// int pos = 0;
+	// size_t buffered_size = 0;
+	// uint8_t msg = 1;
+	// char uart_rx_buffer[UART_RX_BUF_SIZE];
+	for (;;)
+	{
+		vTaskDelay(2500 / portTICK_PERIOD_MS);	
 	}
 
 	// xQueueGenericSend(ic_queue, uart_rx_buffer, 10, queueSEND_TO_BACK);
 	// ++i;
-	vTaskDelay(2500 / portTICK_PERIOD_MS);
+	
 }
