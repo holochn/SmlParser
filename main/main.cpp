@@ -35,7 +35,6 @@ const uint16_t UART_TIMEOUT_MS = 1000;
 const uint32_t UART_RX_BUF_SIZE = 512;
 const uint8_t UART_PATTERN_CHR_NUM = 1;
 
-void tskReadFromUart(void *pvParameter);
 QueueHandle_t uart_queue = NULL;
 
 uart_event_t event;
@@ -162,20 +161,4 @@ void app_main()
 
 		vTaskDelay(1000 / portTICK_PERIOD_MS);
 	}
-}
-
-void tskReadFromUart(void *pvParameter)
-{
-	// int pos = 0;
-	// size_t buffered_size = 0;
-	// uint8_t msg = 1;
-	// char uart_rx_buffer[UART_RX_BUF_SIZE];
-	for (;;)
-	{
-		vTaskDelay(2500 / portTICK_PERIOD_MS);	
-	}
-
-	// xQueueGenericSend(ic_queue, uart_rx_buffer, 10, queueSEND_TO_BACK);
-	// ++i;
-	
 }
