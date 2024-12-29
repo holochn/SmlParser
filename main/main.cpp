@@ -83,7 +83,7 @@ void app_main()
 			case UART_DATA:
 				uart_read_bytes(UART_PORT, &compute_buffer, UART_RX_BUF_SIZE, UART_TIMEOUT_MS / portTICK_PERIOD_MS);
 				uart_flush_input(UART_PORT);
-				printf("%02x%02x receoived\n", compute_buffer[0], compute_buffer[1]);
+				// printf("%02x%02x receoived\n", compute_buffer[0], compute_buffer[1]);
 				break;
 			case UART_FIFO_OVF:
 				ESP_LOGI(TAG2, "hw fifo overflow");
@@ -129,16 +129,10 @@ void app_main()
 				// }
 				break;
 			default:
-				printf("UART event of type %d happened\n", event.type);
+				ESP_LOGI(TAG, "UART event of type %d happened\n", event.type);
 				break;
 			}
 		}
-		
-		printf("\n\n");
-		for(int i=0; i<UART_RX_BUF_SIZE; i++) {
-			printf("%02x", compute_buffer[i]);
-		}
-		printf("\n\n");
 
 		// parse the SMl message
 		smlParser.parseSml();
