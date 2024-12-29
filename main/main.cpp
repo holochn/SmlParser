@@ -1,5 +1,7 @@
+#include "MqttClient.hpp"
 #include "SmlLexer.hpp"
 #include "SmlParser.hpp"
+#include "Wifi.hpp"
 #include <driver/uart.h>
 #include "esp_log.h"
 #include <freertos/FreeRTOS.h>
@@ -38,7 +40,7 @@ const uint8_t UART_PATTERN_CHR_NUM = 1;
 QueueHandle_t uart_queue = NULL;
 
 uart_event_t event;
-SmlLogLevel SmlLogger::logLevel{SmlLogLevel::Verbose};
+SmlLogLevel SmlLogger::logLevel{SmlLogLevel::Warning};
 
 void app_main()
 {
@@ -59,6 +61,14 @@ void app_main()
 	ESP_ERROR_CHECK(uart_param_config(UART_PORT, &uart_config));
 	ESP_ERROR_CHECK(uart_set_pin(UART_PORT, PIN_UART_TX, PIN_UART_RX, PIN_UART_RTS, PIN_UART_CTS));
 	// uart_enable_pattern_det_baud_intr(UART_PORT, 0x1b1b1b1b01010101, UART_PATTERN_CHR_NUM, 9, 0, 0);
+
+	Wifi wifi = Wifi(5);
+	wifi.initialize("ssid", "password");
+	wifi.connect();
+
+	MqttClient mqtt = MqttClient("sml_reader");
+	mqtt.initialize("host", 1883, "user", "password");
+	mqtt.start();
 
 	SmlParser smlParser(reinterpret_cast<unsigned char *>(&compute_buffer), int(UART_RX_BUF_SIZE));
 
@@ -159,6 +169,15 @@ void app_main()
 		std::cout << "scaler " << std::hex << powerL1.scaler << '\n';
 		std::cout << "Integer:: sum actual instantanious power: " << powerL1.value() << " " << smlParser.getUnitAsString(powerL1.unit) << "\n";
 
+		mqtt.publish("totalEnergy", std::to_string(totalEnergy.value()));
+		mqtt.publish("sumInstantPower", std::to_string(smlParser.getElementByObis(OBIS_SUM_ACT_INST_PWR).value()));
+		mqtt.publish("sumInstantPower", std::to_string(smlParser.getElementByObis(OBIS_SUM_ACT_INST_PWR).value()));
+		mqtt.publish("instantPowerL1", std::to_string(smlParser.getElementByObis(OBIS_SUM_ACT_INST_PWR_L1).value()));
+		mqtt.publish("instantPowerL2", std::to_string(smlParser.getElementByObis(OBIS_SUM_ACT_INST_PWR_L2).value()));
+		mqtt.publish("instantPowerL3", std::to_string(smlParser.getElementByObis(OBIS_SUM_ACT_INST_PWR_L3).value()));
+
 		vTaskDelay(1000 / portTICK_PERIOD_MS);
 	}
+
+	wifi.disconnect();
 }
