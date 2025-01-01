@@ -8,4 +8,5 @@ idf_component_register(SRCS
                               MqttClient
                               Wifi
                               driver
+                              nvs_flash
 )

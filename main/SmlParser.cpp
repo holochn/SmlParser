@@ -28,9 +28,7 @@ sml_error_t SmlParser::parseSml()
 
   char pattern[] = {0x1b, 0x1b, 0x1b, 0x1b, 0x01, 0x01, 0x01, 0x01};
   position = 0;
-  for(int i=0; i<buffer_size; ++i) {
-    printf("%02x", buffer[i]);
-  }
+  
   while (memcmp(&buffer[position], &pattern, sizeof(pattern)) != 0)
   {
     position++;
@@ -142,6 +140,7 @@ sml_error_t SmlParser::parseSml()
       finished = true;
       break;
     default:
+      hexPrint(buffer, position);
       SmlLogger::Error("Unknown SML message type");
       return SML_UNKNOWN_TYPE;
       break;
@@ -156,6 +155,9 @@ sml_error_t SmlParser::parseSml()
           "CRC error: Should be %04x, but is %04x", crc16,
           sml_crc16(const_cast<unsigned char *>(buffer), end_crc - start_crc));
     }
+
+    printf("start crc: %d, end crc %d\n", start_crc, end_crc);
+    hexPrint(buffer, position);
 
     if (buffer[position] != 0x00)
     {
@@ -693,7 +695,8 @@ SmlListEntry SmlParser::parseSmlListEntry(const unsigned char *buffer,
 
 void SmlParser::hexPrint(const unsigned char *buffer, int &position)
 {
-  for (int i = position - 10; i < position + 10; ++i)
+  int start = 20;
+  for (int i = position - start; i < position + start; ++i)
   {
     if (i == position)
     {
@@ -706,7 +709,7 @@ void SmlParser::hexPrint(const unsigned char *buffer, int &position)
     }
   }
   printf("\n");
-  for (int i = position - 10; i < position + 10; ++i)
+  for (int i = position - start; i < position + start; ++i)
   {
     if (i == position)
     {

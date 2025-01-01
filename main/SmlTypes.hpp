@@ -3,6 +3,7 @@
 
 #include <stdint.h>
 #include <string>
+#include <cmath>
 
 const uint16_t SML_MSG_TYPE_PUBOPEN_RES = 0x0101;
 const uint16_t SML_MSG_TYPE_GETLIST_RES = 0x0701;
@@ -46,7 +47,7 @@ struct SmlListEntry {
     uint64_t status;
     SmlTime valTime;
     uint8_t unit;
-    int8_t scaler;
+    int8_t scaler{0};
     bool isString;
     uint64_t iValue;
     std::string sValue;
@@ -57,7 +58,7 @@ struct SmlListEntry {
 
         if(!isString) {
             val = static_cast<double>(iValue);
-            // val *= 10^scaler;
+            val *= std::pow(10, scaler);
         }
 
         return val;

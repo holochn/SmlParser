@@ -4,11 +4,17 @@
 #include "Wifi.hpp"
 #include <driver/uart.h>
 #include "esp_log.h"
+#include "esp_sleep.h"
 #include <freertos/FreeRTOS.h>
 #include <freertos/task.h>
 #include <freertos/queue.h>
+#include "nvs.h"
+#include "nvs_flash.h"
 #include <cstring>
 #include <iostream>
+#include "myconfig.hpp"
+
+const char *TAG = "main";
 
 extern "C"
 {
@@ -40,10 +46,19 @@ const uint8_t UART_PATTERN_CHR_NUM = 1;
 QueueHandle_t uart_queue = NULL;
 
 uart_event_t event;
-SmlLogLevel SmlLogger::logLevel{SmlLogLevel::Warning};
+SmlLogLevel SmlLogger::logLevel{SmlLogLevel::Info};
 
 void app_main()
 {
+	// Initialize NVS
+    esp_err_t ret = nvs_flash_init();
+    if (ret == ESP_ERR_NVS_NO_FREE_PAGES || ret == ESP_ERR_NVS_NEW_VERSION_FOUND)
+    {
+        ESP_ERROR_CHECK(nvs_flash_erase());
+        ret = nvs_flash_init();
+    }
+    ESP_ERROR_CHECK(ret);
+	
 	char compute_buffer[UART_RX_BUF_SIZE];
 
 	/* UART */
@@ -62,12 +77,17 @@ void app_main()
 	ESP_ERROR_CHECK(uart_set_pin(UART_PORT, PIN_UART_TX, PIN_UART_RX, PIN_UART_RTS, PIN_UART_CTS));
 	// uart_enable_pattern_det_baud_intr(UART_PORT, 0x1b1b1b1b01010101, UART_PATTERN_CHR_NUM, 9, 0, 0);
 
-	Wifi wifi = Wifi(5);
-	wifi.initialize("ssid", "password");
-	wifi.connect();
+	Wifi wifi = Wifi(myssid, mywifipwd, 5);
+	wifi.initialize();
+	if( wifi.start() != ESP_OK) {
+		ESP_LOGE(TAG, "Unable to start wifi");
+		while(1) {
+			vTaskDelay(1000 / portTICK_PERIOD_MS);
+		}
+	}
 
 	MqttClient mqtt = MqttClient("sml_reader");
-	mqtt.initialize("host", 1883, "user", "password");
+	mqtt.initialize(mqtt_host, 1883, mqtt_user, mqtt_pwd);
 	mqtt.start();
 
 	SmlParser smlParser(reinterpret_cast<unsigned char *>(&compute_buffer), int(UART_RX_BUF_SIZE));
@@ -156,7 +176,7 @@ void app_main()
 
 		SmlListEntry totalEnergy = smlParser.getElementByObis(OBIS_TOTAL_ENERGY);
 		std::cout << "totalEnergy: \nvalue:\t" << std::dec << totalEnergy.value() << '\n';
-		std::cout << "iValue: " << totalEnergy.iValue << '\n';
+		std::cout << "iValue: " << totalEnergy.iValue << " " << smlParser.getUnitAsString(totalEnergy.unit) << '\n';
 
 		SmlListEntry powerL1 = smlParser.getElementByObis(OBIS_SUM_ACT_INST_PWR);
 		std::cout << "\nValue " << std::hex << powerL1.iValue << '\n';
@@ -165,13 +185,15 @@ void app_main()
 
 		mqtt.publish("totalEnergy", std::to_string(totalEnergy.value()));
 		mqtt.publish("sumInstantPower", std::to_string(smlParser.getElementByObis(OBIS_SUM_ACT_INST_PWR).value()));
-		mqtt.publish("sumInstantPower", std::to_string(smlParser.getElementByObis(OBIS_SUM_ACT_INST_PWR).value()));
 		mqtt.publish("instantPowerL1", std::to_string(smlParser.getElementByObis(OBIS_SUM_ACT_INST_PWR_L1).value()));
 		mqtt.publish("instantPowerL2", std::to_string(smlParser.getElementByObis(OBIS_SUM_ACT_INST_PWR_L2).value()));
 		mqtt.publish("instantPowerL3", std::to_string(smlParser.getElementByObis(OBIS_SUM_ACT_INST_PWR_L3).value()));
 
-		vTaskDelay(1000 / portTICK_PERIOD_MS);
-	}
+		vTaskDelay(2000 / portTICK_PERIOD_MS);
 
-	wifi.disconnect();
+		// wifi.disconnect();
+		const int wakeup_time_sec = 60;
+		ESP_ERROR_CHECK(esp_sleep_enable_timer_wakeup(wakeup_time_sec * 1000000));
+		esp_deep_sleep_start();
+	}
 }
