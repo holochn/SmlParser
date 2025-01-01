@@ -13,6 +13,7 @@
 #include "esp_system.h"
 #include "esp_wifi.h"
 #include <esp_wifi_types.h>
+#include "nvs_flash.h"
 
 #define GOT_IPV4_BIT        BIT(0)
 #define GOT_IPV6_BIT        BIT(1)
