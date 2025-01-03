@@ -154,6 +154,7 @@ sml_error_t SmlParser::parseSml()
       SmlLogger::Error(
           "CRC error: Should be %04x, but is %04x", crc16,
           sml_crc16(const_cast<unsigned char *>(buffer), end_crc - start_crc));
+          return SML_ERROR_SYNTAX;
     }
 
     printf("start crc: %d, end crc %d\n", start_crc, end_crc);
