@@ -155,7 +155,10 @@ void app_main()
 		}
 
 		// parse the SMl message
-		smlParser.parseSml();
+		if( smlParser.parseSml() != SML_OK) {
+			continue;
+		}
+
 		SmlListEntry manufacturer = smlParser.getElementByObis(OBIS_MANUFACTURER);
 
 		if (manufacturer.objName.empty())
@@ -183,12 +186,22 @@ void app_main()
 		std::cout << "scaler " << std::hex << powerL1.scaler << '\n';
 		std::cout << "Integer:: sum actual instantanious power: " << powerL1.value() << " " << smlParser.getUnitAsString(powerL1.unit) << "\n";
 
-		mqtt.publish("totalEnergy", std::to_string(totalEnergy.value()));
-		mqtt.publish("sumInstantPower", std::to_string(smlParser.getElementByObis(OBIS_SUM_ACT_INST_PWR).value()));
-		mqtt.publish("instantPowerL1", std::to_string(smlParser.getElementByObis(OBIS_SUM_ACT_INST_PWR_L1).value()));
-		mqtt.publish("instantPowerL2", std::to_string(smlParser.getElementByObis(OBIS_SUM_ACT_INST_PWR_L2).value()));
-		mqtt.publish("instantPowerL3", std::to_string(smlParser.getElementByObis(OBIS_SUM_ACT_INST_PWR_L3).value()));
-
+		if(totalEnergy.value() > 0) {
+			mqtt.publish("totalEnergy", std::to_string(totalEnergy.value()));
+		}
+		if(smlParser.getElementByObis(OBIS_SUM_ACT_INST_PWR).value() < 22000000) {
+			mqtt.publish("sumInstantPower", std::to_string(smlParser.getElementByObis(OBIS_SUM_ACT_INST_PWR).value()));
+		}
+		if(smlParser.getElementByObis(OBIS_SUM_ACT_INST_PWR).value() < 22000000) {
+			mqtt.publish("instantPowerL1", std::to_string(smlParser.getElementByObis(OBIS_SUM_ACT_INST_PWR_L1).value()));
+		}
+		if(smlParser.getElementByObis(OBIS_SUM_ACT_INST_PWR).value() < 22000000) {
+			mqtt.publish("instantPowerL2", std::to_string(smlParser.getElementByObis(OBIS_SUM_ACT_INST_PWR_L2).value()));
+		}
+		if(smlParser.getElementByObis(OBIS_SUM_ACT_INST_PWR).value() < 22000000) {
+			mqtt.publish("instantPowerL3", std::to_string(smlParser.getElementByObis(OBIS_SUM_ACT_INST_PWR_L3).value()));
+		}
+		
 		vTaskDelay(2000 / portTICK_PERIOD_MS);
 
 		// wifi.disconnect();
