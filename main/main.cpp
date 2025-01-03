@@ -46,7 +46,7 @@ const uint8_t UART_PATTERN_CHR_NUM = 1;
 QueueHandle_t uart_queue = NULL;
 
 uart_event_t event;
-SmlLogLevel SmlLogger::logLevel{SmlLogLevel::Info};
+SmlLogLevel SmlLogger::logLevel{SmlLogLevel::Warning};
 
 void app_main()
 {
@@ -204,8 +204,8 @@ void app_main()
 		
 		vTaskDelay(2000 / portTICK_PERIOD_MS);
 
-		// wifi.disconnect();
-		const int wakeup_time_sec = 60;
+		wifi.disconnect();
+		const int wakeup_time_sec = 5 * 60;
 		ESP_ERROR_CHECK(esp_sleep_enable_timer_wakeup(wakeup_time_sec * 1000000));
 		esp_deep_sleep_start();
 	}
