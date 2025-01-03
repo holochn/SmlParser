@@ -35,6 +35,7 @@ sml_error_t SmlParser::parseSml()
     if (position >= (buffer_size - sizeof(pattern)))
     {
       SmlLogger::Error("Unable to find start sequence in %d.",__LINE__);
+      hexPrint(buffer, position);
       return SML_ERROR_SIZE;
     }
   }
@@ -45,6 +46,7 @@ sml_error_t SmlParser::parseSml()
   {
     SmlLogger::Error("Syntax error in %d. Expected start sequence 0x1b.",
                      __LINE__);
+    hexPrint(buffer, position);
     return SML_ERROR_SYNTAX;
   }
 
@@ -55,6 +57,7 @@ sml_error_t SmlParser::parseSml()
     {
       SmlLogger::Error("Syntax error in %d. Expected start sequence 0x01.",
                        __LINE__);
+      hexPrint(buffer, position);
       return SML_ERROR_SYNTAX;
     }
     ++position;
@@ -65,6 +68,7 @@ sml_error_t SmlParser::parseSml()
     if (buffer[position] != 0x76)
     {
       SmlLogger::Error("Syntax error in %d. Expected a list of 6.", __LINE__);
+      hexPrint(buffer, position);
       return SML_ERROR_SYNTAX;
     }
 
@@ -76,6 +80,7 @@ sml_error_t SmlParser::parseSml()
     if (lexer.isOctetString(buffer[position]) == false)
     {
       SmlLogger::Error("Syntax error in %d. Expected octet string.", __LINE__);
+      hexPrint(buffer, position);
       return SML_ERROR_SYNTAX;
     }
 
@@ -85,6 +90,7 @@ sml_error_t SmlParser::parseSml()
     if (transactionId.empty())
     {
       SmlLogger::Warning("Error parsing transactionId");
+      hexPrint(buffer, position);
     }
 
     position += transactionIdLength;
@@ -94,6 +100,7 @@ sml_error_t SmlParser::parseSml()
     if (lexer.isUnsigned8(buffer[position] == false))
     {
       SmlLogger::Error("Syntax error in %d. Expected Unsigned8.", __LINE__);
+      hexPrint(buffer, position);
       return SML_ERROR_SYNTAX;
     }
 
@@ -104,6 +111,7 @@ sml_error_t SmlParser::parseSml()
     if (lexer.isUnsigned8(buffer[position] == false))
     {
       SmlLogger::Error("Syntax error. Expected Unsigned8.");
+      hexPrint(buffer, position);
       return SML_ERROR_SYNTAX;
     }
 
@@ -118,6 +126,7 @@ sml_error_t SmlParser::parseSml()
       SmlLogger::Warning("Syntax error. Expected SML message Type and Body");
       if (abortOnError == 0xFF)
       {
+        hexPrint(buffer, position);
         return SML_ERROR_SYNTAX;
       }
     }
@@ -154,11 +163,9 @@ sml_error_t SmlParser::parseSml()
       SmlLogger::Error(
           "CRC error: Should be %04x, but is %04x", crc16,
           sml_crc16(const_cast<unsigned char *>(buffer), end_crc - start_crc));
+          hexPrint(buffer, position);
           return SML_ERROR_SYNTAX;
     }
-
-    printf("start crc: %d, end crc %d\n", start_crc, end_crc);
-    hexPrint(buffer, position);
 
     if (buffer[position] != 0x00)
     {
@@ -166,6 +173,7 @@ sml_error_t SmlParser::parseSml()
                        buffer[position]);
       if (abortOnError == 0xFF)
       {
+        hexPrint(buffer, position);
         return SML_ERROR_SYNTAX;
       }
     }
@@ -184,6 +192,7 @@ sml_error_t SmlParser::parseSml()
                          __LINE__);
         if (abortOnError == 0xFF)
         {
+          hexPrint(buffer, position);
           return SML_ERROR_SYNTAX;
         }
       }
@@ -195,6 +204,7 @@ sml_error_t SmlParser::parseSml()
         ++position;
         if (abortOnError == 0xFF)
         {
+          hexPrint(buffer, position);
           return SML_ERROR_SYNTAX;
         }
       }
