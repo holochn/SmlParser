@@ -204,7 +204,7 @@ void app_main()
 		
 		vTaskDelay(2000 / portTICK_PERIOD_MS);
 
-		wifi.disconnect();
+		// wifi.disconnect();
 		const int wakeup_time_sec = 5 * 60;
 		ESP_ERROR_CHECK(esp_sleep_enable_timer_wakeup(wakeup_time_sec * 1000000));
 		esp_deep_sleep_start();
